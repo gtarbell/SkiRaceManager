@@ -3,7 +3,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
 import { Gender, Racer, RacerClass, Race, RosterEntry, Team } from "../models";
 import { mockApi } from "../services/mockApi";
-import Modal from "../components/modal";
+import Modal from "../components/Modal";
 
 export default function RosterEditorPage() {
   const { user } = useAuth();
