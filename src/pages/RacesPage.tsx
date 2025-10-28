@@ -34,6 +34,13 @@ export default function RacesPage() {
             <div>
               <div className="title">{r.name}</div>
               <div className="muted">{r.type} • {r.location} • {new Date(r.date).toLocaleDateString()}</div>
+              { user && user.role === "ADMIN" ? (
+                <Link to={`/races/${r.id}/start-list`}>Start List</Link>  
+              
+                ) : ( <div /> )
+              }
+              
+
             </div>
             {user && teams && teams.length > 0 ? (
               <div className="row">

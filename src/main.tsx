@@ -8,6 +8,8 @@ import TeamsPage from "./pages/TeamsPage";
 import TeamDetailPage from "./pages/TeamDetailPage";
 import RacesPage from "./pages/RacesPage";
 import RosterEditorPage from "./pages/RosterEditorPage";
+import StartListPage from "./pages/StartListPage";
+
 import "./styles.css";
 
 const router = createBrowserRouter([
@@ -21,6 +23,7 @@ const router = createBrowserRouter([
       { path: "/teams/:teamId", element: <TeamDetailPage /> },
       { path: "/races", element: <RacesPage /> },
       { path: "/races/:raceId/roster/:teamId", element: <RosterEditorPage /> },
+      { path: "/races/:raceId/start-list", element: <StartListPage /> },
     ],
   },
 ]);

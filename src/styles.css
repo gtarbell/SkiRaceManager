@@ -101,3 +101,5 @@ a.link-button:hover {
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 16px;
 }
+
+.table td, .table th { padding: 8px; }

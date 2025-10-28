@@ -52,3 +52,14 @@ export interface AuthState {
   login: (username: string) => Promise<void>;
   logout: () => void;
 }
+
+export interface StartListEntry {
+  raceId: string;
+  racerId: string;
+  racerName: string;
+  teamId: string;
+  teamName: string;
+  gender: Gender;
+  class: RacerClass;
+  bib: number;
+}

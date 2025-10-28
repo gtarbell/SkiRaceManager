@@ -1,4 +1,4 @@
-import { Team, User, Racer, Gender, RacerClass, Race, RosterEntry } from "../models";
+import { Team, User, Racer, Gender, RacerClass, Race, RosterEntry, StartListEntry  } from "../models";
 
 // Users unchanged
 let users: User[] = [
@@ -8,7 +8,6 @@ let users: User[] = [
   { id: "u4", name: "Eastside Coach", role: "COACH", teamIds: ["t2", "t3", "t1"] },
 ];
 
-// NOTE: Removed Non-Binary racers; reassigned any to Male/Female
 let teams: Team[] = [
   {
     id: "t4",
@@ -32,7 +31,6 @@ let teams: Team[] = [
       { id: "r114", name: "Henry Bird", gender: "Male", class: "Jr Varsity", teamId: "t4" },
       { id: "r115", name: "Ben Leiblein", gender: "Male", class: "Jr Varsity", teamId: "t4" },
       { id: "r116", name: "Coen Fleming-Harris", gender: "Male", class: "Jr Varsity", teamId: "t4" },
-
       { id: "r200", name: "Anika Wipper", gender: "Female", class: "Varsity", teamId: "t5" },
     { id: "r201", name: "Wallace Hamalanien", gender: "Female", class: "Varsity", teamId: "t5" },
     { id: "r202", name: "Anna Nguyen", gender: "Female", class: "Varsity", teamId: "t5" },
@@ -102,6 +100,21 @@ function ensureAuth(user: User, teamId: string) {
   if (user.role === "ADMIN") return;
   if (!user.teamIds.includes(teamId)) throw new Error("Not authorized for this team");
 }
+
+
+const classOrder: RacerClass[] = ["Varsity", "Varsity Alternate", "Jr Varsity", "Provisional"];
+
+function shuffle<T>(arr: T[]): T[] {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+// Cache start lists by race so it stays stable until regenerated
+const startLists: Record<string, StartListEntry[]> = {};
 
 export const mockApi = {
   async loginByName(name: string): Promise<User> {
@@ -327,4 +340,103 @@ export const mockApi = {
       bucket.forEach((e, idx) => e.startOrder = idx + 1);
     }
   },
+
+    async generateStartList(user: User, raceId: string): Promise<StartListEntry[]> {
+    if (user.role !== "ADMIN") throw new Error("Only admins can generate start lists.");
+
+    const race = await this.getRace(raceId);
+    if (!race) throw new Error("Race not found");
+
+    // Collect all roster entries by team for this race
+    const allTeamIds = teams.map(t => t.id);
+    const rosterByTeam: Record<string, RosterEntry[]> = {};
+    for (const tid of allTeamIds) {
+      rosterByTeam[tid] = await this.getRoster({ ...user, role: "ADMIN" }, raceId, tid);
+    }
+
+    // Build ordered list per gender then per class with snake by start position
+    const makeGenderList = (gender: Gender): StartListEntry[] => {
+      const result: StartListEntry[] = [];
+
+      for (const cls of classOrder) {
+        // max start position for this class+gender across all teams
+        let maxPos = 0;
+        for (const tid of allTeamIds) {
+          const posMax = (rosterByTeam[tid] || [])
+            .filter(e => e.gender === gender && e.class === cls)
+            .reduce((m, e) => Math.max(m, e.startOrder), 0);
+          maxPos = Math.max(maxPos, posMax);
+        }
+        if (maxPos === 0) continue;
+
+        // Randomize team order once for this class+gender
+        const randomizedTeams = shuffle(allTeamIds.slice());
+
+        // For each position 1..maxPos, snake through teams
+        for (let pos = 1; pos <= maxPos; pos++) {
+          const forward = (pos % 2) === 1;
+          const order = forward ? randomizedTeams : randomizedTeams.slice().reverse();
+          for (const tid of order) {
+            const entry = (rosterByTeam[tid] || []).find(
+              e => e.gender === gender && e.class === cls && e.startOrder === pos
+            );
+            if (!entry) continue;
+            const team = teams.find(t => t.id === tid)!;
+            const racer = team.racers.find(r => r.id === entry.racerId);
+            if (!racer) continue;
+            result.push({
+              raceId,
+              racerId: entry.racerId,
+              racerName: racer.name,
+              teamId: team.id,
+              teamName: team.name,
+              gender,
+              class: cls,
+              bib: 0, // fill later
+            });
+          }
+        }
+      }
+      return result;
+    };
+
+    // Women first, then Men
+    const women = makeGenderList("Female");
+    const men = makeGenderList("Male");
+
+    function nextAvailableBib(start: number, exclude: Set<number>, count: number): number[] {
+      const res: number[] = [];
+      let num = start;
+      while (res.length < count) {
+        if (!exclude.has(num)) res.push(num);
+        num++;
+      }
+      return res;
+    }
+
+    // define excluded bibs globally or pass from UI
+    const excludedBibs = new Set<number>([6,7, 13, 42, 111]); // example defaults
+
+    // Women
+    const womenBibs = nextAvailableBib(1, excludedBibs, women.length);
+    women.forEach((s, i) => s.bib = womenBibs[i]);
+
+    // Men start at 100
+    const menBibs = nextAvailableBib(100, excludedBibs, men.length);
+    men.forEach((s, i) => s.bib = menBibs[i]);
+
+
+    const full = [...women, ...men];
+    startLists[raceId] = full; // cache
+    return structuredClone(full);
+  },
+
+  async getStartList(user: User, raceId: string): Promise<StartListEntry[]> {
+    if (user.role !== "ADMIN") throw new Error("Only admins can view start lists.");
+    return structuredClone(startLists[raceId] ?? []);
+  },
+
 };
+
+
+

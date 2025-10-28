@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
 import { Gender, Racer, RacerClass, Team } from "../models";
 import { mockApi } from "../services/mockApi";
+import Modal from "../components/Modal";
 
 type Draft = {
   id?: string;
@@ -25,6 +26,9 @@ export default function TeamDetailPage() {
   const [err, setErr] = useState<string | null>(null);
   const genders = mockApi.genders();
   const classes = mockApi.classes();
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [toRemoveId, setToRemoveId] = useState<string | null>(null);
+  const [toRemoveName, setToRemoveName] = useState<string | null>(null);
 
   const [draft, setDraft] = useState<Draft>(emptyDraft(genders, classes));
   const [filterGender, setFilterGender] = useState<Gender | "All">("All");
@@ -87,15 +91,26 @@ export default function TeamDetailPage() {
     }
   };
 
-  const remove = async (id: string) => {
-    if (!team) return;
+  const askRemove = (r: Racer) => {
+    setToRemoveId(r.id);
+    setToRemoveName(r.name);
+    setConfirmOpen(true);
+  };
+
+
+  const doRemove = async () => {
+    if (!team || !toRemoveId) return;
     setErr(null);
     try {
-      await mockApi.removeRacer(team.id, id);
-      setTeam({ ...team, racers: team.racers.filter(r => r.id !== id) });
-      if (draft.id === id) resetDraft();
+      await mockApi.removeRacer(team.id, toRemoveId);
+      setTeam({ ...team, racers: team.racers.filter(r => r.id !== toRemoveId) });
+      if (draft.id === toRemoveId) resetDraft();
     } catch (e: any) {
       setErr(e.message ?? "Failed to remove racer");
+    } finally {
+      setConfirmOpen(false);
+      setToRemoveId(null);
+      setToRemoveName(null);
     }
   };
 
@@ -186,7 +201,8 @@ export default function TeamDetailPage() {
                     <td>{r.class}</td>
                     <td className="right">
                       <button className="secondary" onClick={() => startEdit(r)}>Edit</button>
-                      <button className="danger" onClick={() => remove(r.id)}>Remove</button>
+                      
+                      <button className="danger" onClick={() => askRemove(r)}>Remove</button>
                     </td>
                   </tr>
                 ))}
@@ -195,6 +211,25 @@ export default function TeamDetailPage() {
           )}
         </div>
       </div>
+      <Modal
+        open={confirmOpen}
+        title="Remove Racer?"
+        onClose={() => { setConfirmOpen(false); setToRemoveId(null); setToRemoveName(null); }}
+        showDefaultFooter={false} // 👈 hide the built-in OK button
+      >
+        <p style={{ marginTop: 0 }}>
+          Are you sure you want to remove <b>{toRemoveName}</b> from <b>{team?.name}</b>?
+        </p>
+        <p className="muted small" style={{ marginBottom: 0 }}>
+          This also removes them from any race rosters for this team.
+        </p>
+        <div className="row" style={{ justifyContent: "flex-end", gap: 8, marginTop: 12 }}>
+          <button className="secondary" onClick={() => { setConfirmOpen(false); setToRemoveId(null); setToRemoveName(null); }}>
+            Cancel
+          </button>
+          <button className="danger" onClick={doRemove}>Remove</button>
+        </div>
+      </Modal>
     </section>
   );
 }

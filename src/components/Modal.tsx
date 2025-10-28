@@ -7,6 +7,7 @@ type Props = {
   children: React.ReactNode;
   primaryActionText?: string;
   onPrimaryAction?: () => void;
+  showDefaultFooter?: boolean; // 👈 new prop
 };
 
 export default function Modal({
@@ -16,6 +17,7 @@ export default function Modal({
   children,
   primaryActionText = "OK",
   onPrimaryAction,
+  showDefaultFooter = true, // 👈 default is true
 }: Props) {
   if (!open) return null;
   const doPrimary = () => {
@@ -30,9 +32,11 @@ export default function Modal({
           <button className="icon-btn" onClick={onClose} aria-label="Close">✕</button>
         </div>
         <div className="modal-body">{children}</div>
-        <div className="modal-footer">
-          <button onClick={doPrimary}>{primaryActionText}</button>
-        </div>
+         {showDefaultFooter && (
+          <div className="modal-footer">
+            <button onClick={doPrimary}>{primaryActionText}</button>
+          </div>
+        )}
       </div>
     </div>
   );
