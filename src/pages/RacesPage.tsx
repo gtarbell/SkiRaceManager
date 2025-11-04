@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
 import { Race, Team } from "../models";
 import { mockApi } from "../services/mockApi";
+import { api } from "../services/api";
 
 export default function RacesPage() {
   const { user } = useAuth();
@@ -13,7 +14,7 @@ export default function RacesPage() {
   useEffect(() => {
     (async () => {
       try {
-        const [rs, ts] = await Promise.all([mockApi.listRaces(), user ? mockApi.getTeamsForUser(user) : Promise.resolve([])]);
+        const [rs, ts] = await Promise.all([api.listRaces(), user ? mockApi.getTeamsForUser(user) : Promise.resolve([])]);
         setRaces(rs);
         setTeams(ts);
       } catch (e: any) {

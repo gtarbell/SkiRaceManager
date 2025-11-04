@@ -3,6 +3,8 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
 import { Race, StartListEntry } from "../models";
 import { mockApi } from "../services/mockApi";
+import { api } from "../services/api";
+
 import Modal from "../components/Modal";
 
 export default function StartListPage() {
@@ -21,7 +23,7 @@ export default function StartListPage() {
       try {
         if (!user) { navigate("/"); return; }
         if (user.role !== "ADMIN") { navigate("/home"); return; }
-        const r = await mockApi.getRace(raceId!);
+        const r = await api.getRace(raceId!);
         if (!r) throw new Error("Race not found");
         setRace(r);
         const existing = await mockApi.getStartList(user, raceId!);

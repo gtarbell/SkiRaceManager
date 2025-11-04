@@ -1,4 +1,5 @@
 import { Team, User, Racer, Gender, RacerClass, Race, RosterEntry, StartListEntry  } from "../models";
+import { api } from "../services/api";
 
 // Users unchanged
 let users: User[] = [
@@ -164,13 +165,13 @@ export const mockApi = {
     return ["Varsity", "Varsity Alternate", "Jr Varsity", "Provisional"];
   },
 
-  async listRaces(): Promise<Race[]> {
-    return structuredClone(races).sort((a, b) => a.date.localeCompare(b.date));
-  },
-  async getRace(raceId: string): Promise<Race | undefined> {
-    const r = races.find(r => r.id === raceId);
-    return r ? structuredClone(r) : undefined;
-  },
+  // async listRaces(): Promise<Race[]> {
+  //   return structuredClone(races).sort((a, b) => a.date.localeCompare(b.date));
+  // },
+  // async getRace(raceId: string): Promise<Race | undefined> {
+  //   const r = races.find(r => r.id === raceId);
+  //   return r ? structuredClone(r) : undefined;
+  // },
 
   async getRoster(user: User, raceId: string, teamId: string): Promise<RosterEntry[]> {
     ensureAuth(user, teamId);
@@ -344,7 +345,7 @@ export const mockApi = {
     async generateStartList(user: User, raceId: string): Promise<StartListEntry[]> {
     if (user.role !== "ADMIN") throw new Error("Only admins can generate start lists.");
 
-    const race = await this.getRace(raceId);
+    const race = await api.getRace(raceId);
     if (!race) throw new Error("Race not found");
 
     // Collect all roster entries by team for this race

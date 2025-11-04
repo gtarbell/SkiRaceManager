@@ -3,6 +3,8 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
 import { Gender, Racer, RacerClass, Race, RosterEntry, Team } from "../models";
 import { mockApi } from "../services/mockApi";
+import { api } from "../services/api";
+
 import Modal from "../components/Modal";
 
 export default function RosterEditorPage() {
@@ -28,11 +30,11 @@ export default function RosterEditorPage() {
           return;
         }
         const [r, t, elig, ros, races] = await Promise.all([
-          mockApi.getRace(raceId!),
+          api.getRace(raceId!),
           mockApi.getTeamById(teamId!),
           mockApi.eligibleRacers(user, teamId!),
           mockApi.getRoster(user, raceId!, teamId!),
-          mockApi.listRaces(),
+          api.listRaces(),
         ]);
         if (!r) throw new Error("Race not found");
         if (!t) throw new Error("Team not found");

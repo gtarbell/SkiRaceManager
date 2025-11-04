@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
 import { Race, Team, RosterEntry } from "../models";
 import { mockApi } from "../services/mockApi";
+import { api } from "../services/api";
 
 
 function parseISO(d: string) {
@@ -26,7 +27,7 @@ export default function HomePage() {
       try {
         const [ts, rs] = await Promise.all([
           mockApi.getTeamsForUser(user),
-          mockApi.listRaces(),
+          api.listRaces(),
         ]);
         setTeams(ts);
         setRaces(rs);
