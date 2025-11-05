@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
 import { Team } from "../models";
 import { mockApi } from "../services/mockApi";
+import { api } from "../services/api";
 
 export default function TeamsPage() {
   const { user } = useAuth();
@@ -17,7 +18,7 @@ export default function TeamsPage() {
     }
     (async () => {
       try {
-        const res = await mockApi.getTeamsForUser(user);
+        const res = await api.getTeamsForUser(user);
         setTeams(res);
       } catch (e: any) {
         setErr(e.message ?? "Failed to load teams");
@@ -38,12 +39,12 @@ export default function TeamsPage() {
       ) : (
         <ul className="list">
           {teams.map(t => (
-            <li key={t.id} className="list-item">
+            <li key={t.teamId} className="list-item">
               <div>
                 <div className="title">{t.name}</div>
                 <div className="muted">{t.racers.length} racer{t.racers.length === 1 ? "" : "s"}</div>
               </div>
-              <Link to={`/teams/${t.id}`} className="secondary">Manage</Link>
+              <Link to={`/teams/${t.teamId}`} className="secondary">Manage</Link>
             </li>
           ))}
         </ul>

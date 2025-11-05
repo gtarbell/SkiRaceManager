@@ -11,7 +11,7 @@ let users: User[] = [
 
 let teams: Team[] = [
   {
-    id: "t4",
+    teamId: "t4",
     name: "Sandy High School",
     coachUserIds: ["u2"],
     racers: [
@@ -52,7 +52,7 @@ let teams: Team[] = [
     ],
   },
   {
-    id: "t2",
+    teamId: "t2",
     name: "Cleveland HS",
     coachUserIds: ["u4"],
     racers: [
@@ -61,9 +61,9 @@ let teams: Team[] = [
       { id: "r5", name: "Drew Park",  gender: "Male",   class: "Varsity",     teamId: "t2" },
     ],
   },
-  { id: "t3", name: "Grant HS", coachUserIds: ["u4"], racers: [] },
+  { teamId: "t3", name: "Grant HS", coachUserIds: ["u4"], racers: [] },
   {
-    id: "t1",
+    teamId: "t1",
     name: "Franklin HS",
     coachUserIds: ["u4"],
     racers: [
@@ -74,15 +74,15 @@ let teams: Team[] = [
   },
 ];
 
-let races: Race[] = [
-  { id: "race1", name: "Kelsey Race", location: "Meadows (Stadium)",  date: "2026-01-02", type: "Giant Slalom" },
-  { id: "race2", name: "SL 1",     location: "Anthony Lakes", date: "2026-01-10", type: "Slalom" },
-  { id: "race3", name: "GS 1",     location: "Ski Bowl (MT Hood Lane)", date: "2026-01-19", type: "Giant Slalom" },
-   { id: "race4", name: "SL 2",     location: "Ski Bowl (Challenger)", date: "2026-01-30", type: "Slalom" },
-   { id: "race5", name: "GS 2",     location: "Meadows (Middle Fork)", date: "2026-02-08", type: "Giant Slalom" },
-   { id: "race6", name: "GS 3",     location: "Meadows (Middle Fork)", date: "2026-02-08", type: "Giant Slalom" },
-      { id: "race7", name: "SL 3",     location: "Cooper Spur", date: "2026-02-20", type: "Slalom" },
-];
+// let races: Race[] = [
+//   { id: "race1", name: "Kelsey Race", location: "Meadows (Stadium)",  date: "2026-01-02", type: "Giant Slalom" },
+//   { id: "race2", name: "SL 1",     location: "Anthony Lakes", date: "2026-01-10", type: "Slalom" },
+//   { id: "race3", name: "GS 1",     location: "Ski Bowl (MT Hood Lane)", date: "2026-01-19", type: "Giant Slalom" },
+//    { id: "race4", name: "SL 2",     location: "Ski Bowl (Challenger)", date: "2026-01-30", type: "Slalom" },
+//    { id: "race5", name: "GS 2",     location: "Meadows (Middle Fork)", date: "2026-02-08", type: "Giant Slalom" },
+//    { id: "race6", name: "GS 3",     location: "Meadows (Middle Fork)", date: "2026-02-08", type: "Giant Slalom" },
+//       { id: "race7", name: "SL 3",     location: "Cooper Spur", date: "2026-02-20", type: "Slalom" },
+// ];
 
 const key = (raceId: string, teamId: string) => `${raceId}:${teamId}`;
 let rosters: Record<string, RosterEntry[]> = {};
@@ -124,24 +124,24 @@ export const mockApi = {
     return structuredClone(user);
   },
 
-  async getTeamsForUser(user: User): Promise<Team[]> {
-    if (user.role === "ADMIN") return structuredClone(teams);
-    const allowed = new Set(user.teamIds);
-    return structuredClone(teams.filter(t => allowed.has(t.id)));
-  },
-  async getTeamById(teamId: string): Promise<Team | undefined> {
-    const t = teams.find(t => t.id === teamId);
-    return t ? structuredClone(t) : undefined;
-  },
+  // async getTeamsForUser(user: User): Promise<Team[]> {
+  //   if (user.role === "ADMIN") return structuredClone(teams);
+  //   const allowed = new Set(user.teamIds);
+  //   return structuredClone(teams.filter(t => allowed.has(t.teamId)));
+  // },
+  // async getTeamById(teamId: string): Promise<Team | undefined> {
+  //   const t = teams.find(t => t.teamId === teamId);
+  //   return t ? structuredClone(t) : undefined;
+  // },
   async addRacer(teamId: string, input: Omit<Racer, "id" | "teamId">): Promise<Racer> {
-    const team = teams.find(t => t.id === teamId);
+    const team = teams.find(t => t.teamId === teamId);
     if (!team) throw new Error("Team not found");
     const r: Racer = { id: "r" + Math.random().toString(36).slice(2, 9), teamId, ...input };
     team.racers.push(r);
     return structuredClone(r);
   },
   async updateRacer(teamId: string, racerId: string, patch: Partial<Omit<Racer, "id" | "teamId">>): Promise<Racer> {
-    const team = teams.find(t => t.id === teamId);
+    const team = teams.find(t => t.teamId === teamId);
     if (!team) throw new Error("Team not found");
     const idx = team.racers.findIndex(r => r.id === racerId);
     if (idx === -1) throw new Error("Racer not found");
@@ -149,7 +149,7 @@ export const mockApi = {
     return structuredClone(team.racers[idx]);
   },
   async removeRacer(teamId: string, racerId: string): Promise<void> {
-    const team = teams.find(t => t.id === teamId);
+    const team = teams.find(t => t.teamId === teamId);
     if (!team) throw new Error("Team not found");
     team.racers = team.racers.filter(r => r.id !== racerId);
     for (const k of Object.keys(rosters)) {
@@ -190,7 +190,7 @@ export const mockApi = {
     const source = structuredClone(rosters[key(fromRaceId, teamId)] ?? []);
     // If nothing to copy, just clear target roster to empty copy
     const targetKey = key(toRaceId, teamId);
-    const t = teams.find(t => t.id === teamId);
+    const t = teams.find(t => t.teamId === teamId);
     if (!t) throw new Error("Team not found");
 
     // Build a fresh list enforcing caps and Provisional lock
@@ -234,7 +234,7 @@ export const mockApi = {
 
   async eligibleRacers(user: User, teamId: string): Promise<Racer[]> {
     ensureAuth(user, teamId);
-    const t = teams.find(t => t.id === teamId);
+    const t = teams.find(t => t.teamId === teamId);
     if (!t) throw new Error("Team not found");
     return structuredClone(t.racers);
   },
@@ -242,7 +242,7 @@ export const mockApi = {
   // IMPORTANT: Provisional baseline cannot change on any race roster.
   async addToRoster(user: User, raceId: string, teamId: string, racerId: string, desiredClass?: RacerClass): Promise<RosterEntry[]> {
     ensureAuth(user, teamId);
-    const t = teams.find(t => t.id === teamId);
+    const t = teams.find(t => t.teamId === teamId);
     if (!t) throw new Error("Team not found");
     const racer = t.racers.find(r => r.id === racerId);
     if (!racer) throw new Error("Racer not found");
@@ -284,7 +284,7 @@ export const mockApi = {
     if (idx === -1) throw new Error("Entry not found");
 
     // If baseline is Provisional, prevent change
-    const team = teams.find(t => t.id === teamId);
+    const team = teams.find(t => t.teamId === teamId);
     const racer = team?.racers.find(r => r.id === racerId);
     if (racer?.class === "Provisional" && newClass !== "Provisional") {
       throw new Error("Provisional racers must remain Provisional for all races.");
@@ -349,7 +349,7 @@ export const mockApi = {
     if (!race) throw new Error("Race not found");
 
     // Collect all roster entries by team for this race
-    const allTeamIds = teams.map(t => t.id);
+    const allTeamIds = teams.map(t => t.teamId);
     const rosterByTeam: Record<string, RosterEntry[]> = {};
     for (const tid of allTeamIds) {
       rosterByTeam[tid] = await this.getRoster({ ...user, role: "ADMIN" }, raceId, tid);
@@ -382,14 +382,14 @@ export const mockApi = {
               e => e.gender === gender && e.class === cls && e.startOrder === pos
             );
             if (!entry) continue;
-            const team = teams.find(t => t.id === tid)!;
+            const team = teams.find(t => t.teamId === tid)!;
             const racer = team.racers.find(r => r.id === entry.racerId);
             if (!racer) continue;
             result.push({
               raceId,
               racerId: entry.racerId,
               racerName: racer.name,
-              teamId: team.id,
+              teamId: team.teamId,
               teamName: team.name,
               gender,
               class: cls,

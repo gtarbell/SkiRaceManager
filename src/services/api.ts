@@ -21,12 +21,20 @@ export const api = {
     return req("/races/")
   } ,
 
-  async getRace(raceId: string): Promise<Race | undefined> { return req(`/races/${raceId}`); }
+  async getRace(raceId: string): Promise<Race | undefined> { return req(`/races/${raceId}`); },
 
-  // getTeamsForUser: (user: { role: "ADMIN" | "COACH"; teamIds: string[] }) =>
-  //   user.role === "ADMIN" ? req("/teams") : req(`/teams?ids=${encodeURIComponent(user.teamIds.join(","))}`),
 
-  // getTeamById: (teamId: string) => req(`/teams/${teamId}`),
+  async getTeamsForUser(user: User): Promise<Team[]> {
+    if (user.role === "ADMIN") 
+      return req("/teams/");
+    else
+      return req(`/teams/?ids=${encodeURIComponent(user.teamIds.join(","))}`)
+  },
+
+  async getTeamById(teamId: string): Promise<Team | undefined> {
+    return req(`/teams/${teamId}`);
+  },
+
 
   // addRacer: (teamId: string, input: { name: string; gender: "Male"|"Female"; class: string }) =>
   //   req(`/teams/${teamId}/racers`, { method: "POST", body: JSON.stringify(input) }),

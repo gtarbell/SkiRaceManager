@@ -14,7 +14,7 @@ export default function RacesPage() {
   useEffect(() => {
     (async () => {
       try {
-        const [rs, ts] = await Promise.all([api.listRaces(), user ? mockApi.getTeamsForUser(user) : Promise.resolve([])]);
+        const [rs, ts] = await Promise.all([api.listRaces(), user ? api.getTeamsForUser(user) : Promise.resolve([])]);
         setRaces(rs);
         setTeams(ts);
       } catch (e: any) {
@@ -31,12 +31,12 @@ export default function RacesPage() {
       <h1>Races</h1>
       <ul className="list">
         {races.map(r => (
-          <li key={r.id} className="list-item">
+          <li key={r.raceId} className="list-item">
             <div>
               <div className="title">{r.name}</div>
               <div className="muted">{r.type} • {r.location} • {new Date(r.date).toLocaleDateString()}</div>
               { user && user.role === "ADMIN" ? (
-                <Link to={`/races/${r.id}/start-list`}>Start List</Link>  
+                <Link to={`/races/${r.raceId}/start-list`}>Start List</Link>  
               
                 ) : ( <div /> )
               }
@@ -46,7 +46,7 @@ export default function RacesPage() {
             {user && teams && teams.length > 0 ? (
               <div className="row">
                 {teams.map(t => (
-                  <Link key={t.id} to={`/races/${r.id}/roster/${t.id}`} className="secondary">Edit {t.name} Roster</Link>
+                  <Link key={t.teamId} to={`/races/${r.raceId}/roster/${t.teamId}`} className="secondary">Edit {t.name} Roster</Link>
                 ))}
               </div>
             ) : (

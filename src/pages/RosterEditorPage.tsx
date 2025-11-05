@@ -31,7 +31,7 @@ export default function RosterEditorPage() {
         }
         const [r, t, elig, ros, races] = await Promise.all([
           api.getRace(raceId!),
-          mockApi.getTeamById(teamId!),
+          api.getTeamById(teamId!),
           mockApi.eligibleRacers(user, teamId!),
           mockApi.getRoster(user, raceId!, teamId!),
           api.listRaces(),
@@ -41,8 +41,8 @@ export default function RosterEditorPage() {
         // auth checked inside eligible/getRoster
         setRace(r); setTeam(t); setEligible(elig); setRoster(ros);
         setAllRaces(races);
-        const firstOther = races.find(x => x.id !== raceId);
-        setCopyFromRaceId(firstOther?.id ?? "");
+        const firstOther = races.find(x => x.raceId !== raceId);
+        setCopyFromRaceId(firstOther?.raceId ?? "");
       } catch (e: any) {
         setErr(e.message ?? "Failed to load roster editor");
         setShowErr(true);
@@ -101,7 +101,7 @@ export default function RosterEditorPage() {
   try {
     const updated = await mockApi.copyRosterFromRace(user, copyFromRaceId, raceId!, teamId!);
     setRoster(updated);
-    setErr(`Roster copied from "${allRaces.find(r => r.id === copyFromRaceId)?.name}". ` +
+    setErr(`Roster copied from "${allRaces.find(r => r.raceId === copyFromRaceId)?.name}". ` +
            `Caps and Provisional locks were enforced.`);
     setShowErr(true);
   } catch (e: any) {
@@ -155,8 +155,8 @@ export default function RosterEditorPage() {
           <option value="" disabled>
             {allRaces.length ? "Select race…" : "No races available"}
           </option>
-          {allRaces.filter(r => r.id !== raceId).map(r => (
-            <option key={r.id} value={r.id}>
+          {allRaces.filter(r => r.raceId !== raceId).map(r => (
+            <option key={r.raceId} value={r.raceId}>
               {r.name} — {new Date(r.date).toLocaleDateString()}
             </option>
           ))}

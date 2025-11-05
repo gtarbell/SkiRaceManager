@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
 import { Gender, Racer, RacerClass, Team } from "../models";
 import { mockApi } from "../services/mockApi";
+import { api } from "../services/api";
 import Modal from "../components/Modal";
 
 type Draft = {
@@ -40,10 +41,10 @@ export default function TeamDetailPage() {
     }
     (async () => {
       try {
-        const t = await mockApi.getTeamById(teamId!);
+        const t = await api.getTeamById(teamId!);
         if (!t) throw new Error("Team not found");
         // If coach, enforce visibility
-        if (user.role === "COACH" && !user.teamIds.includes(t.id)) {
+        if (user.role === "COACH" && !user.teamIds.includes(t.teamId)) {
           throw new Error("Not authorized to view this team");
         }
         setTeam(t);
@@ -71,14 +72,14 @@ export default function TeamDetailPage() {
     setErr(null);
     try {
       if (draft.id) {
-        const updated = await mockApi.updateRacer(team.id, draft.id, {
+        const updated = await mockApi.updateRacer(team.teamId, draft.id, {
           name: draft.name.trim(),
           gender: draft.gender,
           class: draft.class,
         });
         setTeam({ ...team, racers: team.racers.map(r => (r.id === updated.id ? updated : r)) });
       } else {
-        const created = await mockApi.addRacer(team.id, {
+        const created = await mockApi.addRacer(team.teamId, {
           name: draft.name.trim(),
           gender: draft.gender,
           class: draft.class,
@@ -102,7 +103,7 @@ export default function TeamDetailPage() {
     if (!team || !toRemoveId) return;
     setErr(null);
     try {
-      await mockApi.removeRacer(team.id, toRemoveId);
+      await mockApi.removeRacer(team.teamId, toRemoveId);
       setTeam({ ...team, racers: team.racers.filter(r => r.id !== toRemoveId) });
       if (draft.id === toRemoveId) resetDraft();
     } catch (e: any) {

@@ -26,7 +26,7 @@ export default function HomePage() {
     (async () => {
       try {
         const [ts, rs] = await Promise.all([
-          mockApi.getTeamsForUser(user),
+          api.getTeamsForUser(user),
           api.listRaces(),
         ]);
         setTeams(ts);
@@ -55,8 +55,8 @@ export default function HomePage() {
         try {
         const entries = await Promise.all(
             teams.map(async (t) => {
-            const ros = await mockApi.getRoster(user!, nextRace.id, t.id);
-            return [t.id, ros] as const;
+            const ros = await mockApi.getRoster(user!, nextRace.raceId, t.teamId);
+            return [t.teamId, ros] as const;
             })
         );
         setRostersByTeam(Object.fromEntries(entries));
@@ -67,7 +67,7 @@ export default function HomePage() {
     }, [user, nextRace, teams]);
 
     function badgeForTeam(t: Team) {
-        const roster = rostersByTeam[t.id] ?? [];
+        const roster = rostersByTeam[t.teamId] ?? [];
         const teamRacerIds = new Set(t.racers.map(r => r.id));
         const rosterRacerIds = new Set(roster.map(e => e.racerId));
 
@@ -121,7 +121,7 @@ export default function HomePage() {
             ) : (
             <div className="grid home-grid">
                 {teams.map(t => (
-                <div className="card" key={t.id}>
+                <div className="card" key={t.teamId}>
                     <h2 style={{marginBottom:8}}>{t.name}</h2>
                     <p className="muted small" style={{marginTop:0, marginBottom:12}}>
                     {t.racers.length} racer{t.racers.length === 1 ? "" : "s"}
@@ -129,7 +129,7 @@ export default function HomePage() {
 
                     {/* Manage Team */}
                     <div className="row" style={{justifyContent:"flex-start", gap:8, marginBottom:8}}>
-                    <Link to={`/teams/${t.id}`} className="link-button">Manage Team</Link>
+                    <Link to={`/teams/${t.teamId}`} className="link-button">Manage Team</Link>
                     </div>
 
                     {/* Edit Next Race Roster (shown below Manage Team) */}
@@ -151,7 +151,7 @@ export default function HomePage() {
                             })()}
                             </div>
                             <div style={{marginTop:6}}>
-                            <Link to={`/races/${nextRace.id}/roster/${t.id}` } className="link-button">Edit Next Race Roster</Link>
+                            <Link to={`/races/${nextRace.raceId}/roster/${t.teamId}` } className="link-button">Edit Next Race Roster</Link>
                             </div>
                         </div>
                         ) : (

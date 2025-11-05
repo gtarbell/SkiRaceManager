@@ -21,7 +21,7 @@ export interface Racer {
 }
 
 export interface Team {
-  id: string;
+  teamId: string;
   name: string;
   coachUserIds: string[];
   racers: Racer[];
@@ -30,7 +30,7 @@ export interface Team {
 export type RaceType = "Slalom" | "Giant Slalom";
 
 export interface Race {
-  id: string;
+  raceId: string;
   name: string;
   location: string;
   date: string; // ISO
