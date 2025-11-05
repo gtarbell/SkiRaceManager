@@ -3,7 +3,7 @@ import { Team, User, Racer, Gender, RacerClass, Race, RosterEntry, StartListEntr
 const API = import.meta.env.VITE_API_BASE_URL; // set in Amplify/Env
 
 async function req<T>(path: string, init?: RequestInit): Promise<T> {
-  let apiUrl = "https://oee9ah9l67.execute-api.us-east-2.amazonaws.com";
+  let apiUrl = "https://qhlag5gvl6.execute-api.us-east-2.amazonaws.com";
 
   const res = await fetch(`${apiUrl}${path}`, {
     ...init,
@@ -18,7 +18,7 @@ async function req<T>(path: string, init?: RequestInit): Promise<T> {
 export const api = {
   async listRaces(): Promise<Race[]>
   {
-    return req("/races")
+    return req("/races/")
   } ,
 
   async getRace(raceId: string): Promise<Race | undefined> { return req(`/races/${raceId}`); }
