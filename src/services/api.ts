@@ -16,14 +16,14 @@ async function req<T>(path: string, init?: RequestInit): Promise<T> {
 }
 
 export const api = {
+  
+
   async listRaces(): Promise<Race[]>
   {
     return req("/races/")
   } ,
 
   async getRace(raceId: string): Promise<Race | undefined> { return req(`/races/${raceId}`); },
-
-
   async getTeamsForUser(user: User): Promise<Team[]> {
     if (user.role === "ADMIN") 
       return req("/teams/");

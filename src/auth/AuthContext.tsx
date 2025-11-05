@@ -1,14 +1,15 @@
 import React, { createContext, useContext, useMemo, useState } from "react";
 import { AuthState, User } from "../models";
 import { mockApi } from "../services/mockApi";
-//import { mockApi } from "../services/api";
+import { api } from "../services/api";
 const Ctx = createContext<AuthState | null>(null);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
 
   const login = async (username: string) => {
-    const u = await mockApi.loginByName(username);
+    const u = await api.loginByName(username);
+    if (!u) throw new Error("User not found");
     setUser(u);
   };
   const logout = () => setUser(null);
