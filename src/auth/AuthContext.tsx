@@ -8,7 +8,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
 
   const login = async (username: string) => {
-    const u = await api.loginByName(username);
+    const u = await mockApi.loginByName(username);
     if (!u) throw new Error("User not found");
     setUser(u);
   };

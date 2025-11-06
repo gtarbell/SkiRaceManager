@@ -7,7 +7,7 @@ import { api } from "../services/api";
 import Modal from "../components/Modal";
 
 type Draft = {
-  id?: string;
+  racerId?: string;
   name: string;
   gender: Gender;
   class: RacerClass;
@@ -62,7 +62,7 @@ export default function TeamDetailPage() {
   }, [team, filterGender]);
 
   const startEdit = (r: Racer) => {
-    setDraft({ id: r.racerId, name: r.name, gender: r.gender, class: r.class });
+    setDraft({ racerId: r.racerId, name: r.name, gender: r.gender, class: r.class });
   };
 
   const resetDraft = () => setDraft(emptyDraft(genders, classes));
@@ -71,8 +71,8 @@ export default function TeamDetailPage() {
     if (!team) return;
     setErr(null);
     try {
-      if (draft.id) {
-        const updated = await api.updateRacer(team.teamId, draft.id, {
+      if (draft.racerId) {
+        const updated = await api.updateRacer(team.teamId, draft.racerId, {
           name: draft.name.trim(),
           gender: draft.gender,
           class: draft.class,
@@ -105,7 +105,7 @@ export default function TeamDetailPage() {
     try {
       await api.removeRacer(team.teamId, toRemoveId);
       setTeam({ ...team, racers: team.racers.filter(r => r.racerId !== toRemoveId) });
-      if (draft.id === toRemoveId) resetDraft();
+      if (draft.racerId === toRemoveId) resetDraft();
     } catch (e: any) {
       setErr(e.message ?? "Failed to remove racer");
     } finally {
@@ -136,7 +136,7 @@ export default function TeamDetailPage() {
 
       <div className="grid">
         <div className="card">
-          <h2>{draft.id ? "Edit Racer" : "Add Racer"}</h2>
+          <h2>{draft.racerId ? "Edit Racer" : "Add Racer"}</h2>
           <div className="form">
             <label>
               Name
@@ -166,9 +166,9 @@ export default function TeamDetailPage() {
             </label>
             <div className="row">
               <button onClick={submitDraft} disabled={!draft.name.trim()}>
-                {draft.id ? "Save Changes" : "Add Racer"}
+                {draft.racerId ? "Save Changes" : "Add Racer"}
               </button>
-              {draft.id && (
+              {draft.racerId && (
                 <button className="secondary" onClick={resetDraft}>
                   Cancel
                 </button>
