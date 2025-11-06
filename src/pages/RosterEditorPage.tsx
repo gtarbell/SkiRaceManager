@@ -52,12 +52,12 @@ export default function RosterEditorPage() {
 
   const genders: Gender[] = mockApi.genders();
   const classes: RacerClass[] = mockApi.classes();
-  const racerById = (id: string) => team?.racers.find(r => r.id === id);
+  const racerById = (id: string) => team?.racers.find(r => r.racerId === id);
 
   const eligByGender = useMemo(() => {
     const setSelected = new Set(roster.map(r => r.racerId));
     return genders.reduce<Record<Gender, Racer[]>>((acc, g) => {
-      acc[g] = eligible.filter(r => r.gender === g && !setSelected.has(r.id))
+      acc[g] = eligible.filter(r => r.gender === g && !setSelected.has(r.racerId))
                        .sort((a,b)=>a.name.localeCompare(b.name));
       return acc;
     }, {} as any);
@@ -83,7 +83,7 @@ export default function RosterEditorPage() {
     if (!user) return;
     setErr(null);
     try {
-      const updated = await mockApi.addToRoster(user, raceId!, teamId!, racer.id, desired);
+      const updated = await mockApi.addToRoster(user, raceId!, teamId!, racer.racerId, desired);
       setRoster(updated);
     } catch (e: any) { setErr(e.message ?? "Failed to add"); setShowErr(true);}
   }
@@ -184,7 +184,7 @@ export default function RosterEditorPage() {
                 if (r.class === "Provisional") {
                 // Provisional stays as a single primary action
                 return (
-                    <li key={r.id} className="list-item">
+                    <li key={r.racerId} className="list-item">
                     <div>
                         <div className="title">{r.name}</div>
                         <div className="muted small">{r.gender} • Baseline {r.class}</div>
@@ -209,7 +209,7 @@ export default function RosterEditorPage() {
                 );
 
                 return (
-                <li key={r.id} className="list-item">
+                <li key={r.racerId} className="list-item">
                     <div>
                     <div className="title">{r.name}</div>
                     <div className="muted small">{r.gender} • Baseline {r.class}</div>

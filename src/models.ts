@@ -13,7 +13,7 @@ export interface User {
 }
 
 export interface Racer {
-  id: string;
+  racerId: string;
   name: string;
   gender: Gender;
   class: RacerClass; // baseline/default; if "Provisional", it cannot change on any race roster

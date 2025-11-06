@@ -15,40 +15,40 @@ let teams: Team[] = [
     name: "Sandy High School",
     coachUserIds: ["u2"],
     racers: [
-      { id: "r100", name: "Ansel Ofstie", gender: "Male", class: "Varsity", teamId: "t4" },
-      { id: "r101", name: "Mario Heckel", gender: "Male", class: "Varsity", teamId: "t4" },
-      { id: "r102", name: "Dylan Brown", gender: "Male", class: "Varsity", teamId: "t4" },
-      { id: "r103", name: "Grant Messinger", gender: "Male", class: "Varsity", teamId: "t4" },
-      { id: "r104", name: "Ethan Van Hee", gender: "Male", class: "Varsity", teamId: "t4" },
-      { id: "r105", name: "Beck Schreiner", gender: "Male", class: "Varsity Alternate", teamId: "t4" },
-      { id: "r106", name: "Kai Muntz", gender: "Male", class: "Jr Varsity", teamId: "t4" },
-      { id: "r107", name: "Max Kocubinski", gender: "Male", class: "Jr Varsity", teamId: "t4" },
-      { id: "r108", name: "Hayden Ferschweiler", gender: "Male", class: "Jr Varsity", teamId: "t4" },
-      { id: "r109", name: "Finley Lafayette", gender: "Male", class: "Jr Varsity", teamId: "t4" },
-      { id: "r110", name: "Ben Hohl", gender: "Male", class: "Jr Varsity", teamId: "t4" },
-      { id: "r111", name: "Jackson Mulick", gender: "Male", class: "Jr Varsity", teamId: "t4" },
-      { id: "r112", name: "Jameson Stone", gender: "Male", class: "Jr Varsity", teamId: "t4" },
-      { id: "r113", name: "Noah Lowery", gender: "Male", class: "Jr Varsity", teamId: "t4" },
-      { id: "r114", name: "Henry Bird", gender: "Male", class: "Jr Varsity", teamId: "t4" },
-      { id: "r115", name: "Ben Leiblein", gender: "Male", class: "Jr Varsity", teamId: "t4" },
-      { id: "r116", name: "Coen Fleming-Harris", gender: "Male", class: "Jr Varsity", teamId: "t4" },
-      { id: "r200", name: "Anika Wipper", gender: "Female", class: "Varsity", teamId: "t5" },
-    { id: "r201", name: "Wallace Hamalanien", gender: "Female", class: "Varsity", teamId: "t5" },
-    { id: "r202", name: "Anna Nguyen", gender: "Female", class: "Varsity", teamId: "t5" },
-    { id: "r203", name: "Brynn Fleming-Harris", gender: "Female", class: "Varsity", teamId: "t5" },
-    { id: "r204", name: "Hannah Ban", gender: "Female", class: "Varsity", teamId: "t5" },
-    { id: "r205", name: "Keegan Deters", gender: "Female", class: "Varsity Alternate", teamId: "t5" },
-    { id: "r206", name: "Chella Houston", gender: "Female", class: "Jr Varsity", teamId: "t5" },
-    { id: "r207", name: "Brighton Wilson", gender: "Female", class: "Jr Varsity", teamId: "t5" },
-    { id: "r208", name: "Addison Kolibaba", gender: "Female", class: "Jr Varsity", teamId: "t5" },
-    { id: "r209", name: "Leah Shaw", gender: "Female", class: "Jr Varsity", teamId: "t5" },
-    { id: "r210", name: "Montana Tarbell", gender: "Female", class: "Jr Varsity", teamId: "t5" },
-    { id: "r211", name: "Ella Nguyen", gender: "Female", class: "Jr Varsity", teamId: "t5" },
-    { id: "r212", name: "Athea Wehrung", gender: "Female", class: "Jr Varsity", teamId: "t5" },
-    { id: "r213", name: "Rory Mason", gender: "Female", class: "Jr Varsity", teamId: "t5" },
-    { id: "r214", name: "Payton Haney", gender: "Female", class: "Jr Varsity", teamId: "t5" },
-    { id: "r215", name: "Josephine Bird", gender: "Female", class: "Jr Varsity", teamId: "t5" },
-    { id: "r216", name: "Wren Schreiner", gender: "Female", class: "Provisional", teamId: "t5" },
+      {racerId: "r100", name: "Ansel Ofstie", gender: "Male", class: "Varsity", teamId: "t4" },
+      {racerId: "r101", name: "Mario Heckel", gender: "Male", class: "Varsity", teamId: "t4" },
+      {racerId: "r102", name: "Dylan Brown", gender: "Male", class: "Varsity", teamId: "t4" },
+      {racerId: "r103", name: "Grant Messinger", gender: "Male", class: "Varsity", teamId: "t4" },
+      {racerId: "r104", name: "Ethan Van Hee", gender: "Male", class: "Varsity", teamId: "t4" },
+      {racerId: "r105", name: "Beck Schreiner", gender: "Male", class: "Varsity Alternate", teamId: "t4" },
+      {racerId: "r106", name: "Kai Muntz", gender: "Male", class: "Jr Varsity", teamId: "t4" },
+      {racerId: "r107", name: "Max Kocubinski", gender: "Male", class: "Jr Varsity", teamId: "t4" },
+      {racerId: "r108", name: "Hayden Ferschweiler", gender: "Male", class: "Jr Varsity", teamId: "t4" },
+      {racerId: "r109", name: "Finley Lafayette", gender: "Male", class: "Jr Varsity", teamId: "t4" },
+      {racerId: "r110", name: "Ben Hohl", gender: "Male", class: "Jr Varsity", teamId: "t4" },
+      {racerId: "r111", name: "Jackson Mulick", gender: "Male", class: "Jr Varsity", teamId: "t4" },
+      {racerId: "r112", name: "Jameson Stone", gender: "Male", class: "Jr Varsity", teamId: "t4" },
+      {racerId: "r113", name: "Noah Lowery", gender: "Male", class: "Jr Varsity", teamId: "t4" },
+      {racerId: "r114", name: "Henry Bird", gender: "Male", class: "Jr Varsity", teamId: "t4" },
+      {racerId: "r115", name: "Ben Leiblein", gender: "Male", class: "Jr Varsity", teamId: "t4" },
+      {racerId: "r116", name: "Coen Fleming-Harris", gender: "Male", class: "Jr Varsity", teamId: "t4" },
+      {racerId: "r200", name: "Anika Wipper", gender: "Female", class: "Varsity", teamId: "t5" },
+    {racerId: "r201", name: "Wallace Hamalanien", gender: "Female", class: "Varsity", teamId: "t5" },
+    {racerId: "r202", name: "Anna Nguyen", gender: "Female", class: "Varsity", teamId: "t5" },
+    {racerId: "r203", name: "Brynn Fleming-Harris", gender: "Female", class: "Varsity", teamId: "t5" },
+    {racerId: "r204", name: "Hannah Ban", gender: "Female", class: "Varsity", teamId: "t5" },
+    {racerId: "r205", name: "Keegan Deters", gender: "Female", class: "Varsity Alternate", teamId: "t5" },
+    {racerId: "r206", name: "Chella Houston", gender: "Female", class: "Jr Varsity", teamId: "t5" },
+    {racerId: "r207", name: "Brighton Wilson", gender: "Female", class: "Jr Varsity", teamId: "t5" },
+    {racerId: "r208", name: "Addison Kolibaba", gender: "Female", class: "Jr Varsity", teamId: "t5" },
+    {racerId: "r209", name: "Leah Shaw", gender: "Female", class: "Jr Varsity", teamId: "t5" },
+    {racerId: "r210", name: "Montana Tarbell", gender: "Female", class: "Jr Varsity", teamId: "t5" },
+    {racerId: "r211", name: "Ella Nguyen", gender: "Female", class: "Jr Varsity", teamId: "t5" },
+    {racerId: "r212", name: "Athea Wehrung", gender: "Female", class: "Jr Varsity", teamId: "t5" },
+    {racerId: "r213", name: "Rory Mason", gender: "Female", class: "Jr Varsity", teamId: "t5" },
+    {racerId: "r214", name: "Payton Haney", gender: "Female", class: "Jr Varsity", teamId: "t5" },
+    {racerId: "r215", name: "Josephine Bird", gender: "Female", class: "Jr Varsity", teamId: "t5" },
+    {racerId: "r216", name: "Wren Schreiner", gender: "Female", class: "Provisional", teamId: "t5" },
     ],
   },
   {
@@ -56,9 +56,9 @@ let teams: Team[] = [
     name: "Cleveland HS",
     coachUserIds: ["u4"],
     racers: [
-      { id: "r3", name: "Riley Kim",  gender: "Female", class: "Provisional", teamId: "t2" },
-      { id: "r4", name: "Morgan Fox", gender: "Female", class: "Varsity",     teamId: "t2" },
-      { id: "r5", name: "Drew Park",  gender: "Male",   class: "Varsity",     teamId: "t2" },
+      { racerId: "r3", name: "Riley Kim",  gender: "Female", class: "Provisional", teamId: "t2" },
+      { racerId: "r4", name: "Morgan Fox", gender: "Female", class: "Varsity",     teamId: "t2" },
+      { racerId: "r5", name: "Drew Park",  gender: "Male",   class: "Varsity",     teamId: "t2" },
     ],
   },
   { teamId: "t3", name: "Grant HS", coachUserIds: ["u4"], racers: [] },
@@ -67,8 +67,8 @@ let teams: Team[] = [
     name: "Franklin HS",
     coachUserIds: ["u4"],
     racers: [
-      { id: "r3", name: "Isa Halle",  gender: "Female", class: "Varsity", teamId: "t1" },
-      { id: "r4", name: "Cleo	Craig", gender: "Female", class: "Varsity",     teamId: "t1" },
+      { racerId: "r3", name: "Isa Halle",  gender: "Female", class: "Varsity", teamId: "t1" },
+      { racerId: "r4", name: "Cleo	Craig", gender: "Female", class: "Varsity",     teamId: "t1" },
       
     ],
   },
@@ -133,29 +133,29 @@ export const mockApi = {
   //   const t = teams.find(t => t.teamId === teamId);
   //   return t ? structuredClone(t) : undefined;
   // },
-  async addRacer(teamId: string, input: Omit<Racer, "id" | "teamId">): Promise<Racer> {
-    const team = teams.find(t => t.teamId === teamId);
-    if (!team) throw new Error("Team not found");
-    const r: Racer = { id: "r" + Math.random().toString(36).slice(2, 9), teamId, ...input };
-    team.racers.push(r);
-    return structuredClone(r);
-  },
-  async updateRacer(teamId: string, racerId: string, patch: Partial<Omit<Racer, "id" | "teamId">>): Promise<Racer> {
-    const team = teams.find(t => t.teamId === teamId);
-    if (!team) throw new Error("Team not found");
-    const idx = team.racers.findIndex(r => r.id === racerId);
-    if (idx === -1) throw new Error("Racer not found");
-    team.racers[idx] = { ...team.racers[idx], ...patch };
-    return structuredClone(team.racers[idx]);
-  },
-  async removeRacer(teamId: string, racerId: string): Promise<void> {
-    const team = teams.find(t => t.teamId === teamId);
-    if (!team) throw new Error("Team not found");
-    team.racers = team.racers.filter(r => r.id !== racerId);
-    for (const k of Object.keys(rosters)) {
-      rosters[k] = rosters[k].filter(e => e.racerId !== racerId || e.teamId !== teamId);
-    }
-  },
+  // async addRacer(teamId: string, input: Omit<Racer, "id" | "teamId">): Promise<Racer> {
+  //   const team = teams.find(t => t.teamId === teamId);
+  //   if (!team) throw new Error("Team not found");
+  //   const r: Racer = { id: "r" + Math.random().toString(36).slice(2, 9), teamId, ...input };
+  //   team.racers.push(r);
+  //   return structuredClone(r);
+  // },
+  // async updateRacer(teamId: string, racerId: string, patch: Partial<Omit<Racer, "id" | "teamId">>): Promise<Racer> {
+  //   const team = teams.find(t => t.teamId === teamId);
+  //   if (!team) throw new Error("Team not found");
+  //   const idx = team.racers.findIndex(r => r.id === racerId);
+  //   if (idx === -1) throw new Error("Racer not found");
+  //   team.racers[idx] = { ...team.racers[idx], ...patch };
+  //   return structuredClone(team.racers[idx]);
+  // },
+  // async removeRacer(teamId: string, racerId: string): Promise<void> {
+  //   const team = teams.find(t => t.teamId === teamId);
+  //   if (!team) throw new Error("Team not found");
+  //   team.racers = team.racers.filter(r => r.id !== racerId);
+  //   for (const k of Object.keys(rosters)) {
+  //     rosters[k] = rosters[k].filter(e => e.racerId !== racerId || e.teamId !== teamId);
+  //   }
+  // },
 
   // Only Male/Female now
   genders(): Gender[] {
@@ -196,7 +196,7 @@ export const mockApi = {
     // Build a fresh list enforcing caps and Provisional lock
     const result: RosterEntry[] = [];
     const pushIfAllowed = (entry: RosterEntry) => {
-      const racer = t.racers.find(r => r.id === entry.racerId);
+      const racer = t.racers.find(r => r.racerId === entry.racerId);
       if (!racer) return; // skip if racer no longer on team
       // lock Provisional to Provisional
       const desiredClass: RacerClass =
@@ -208,7 +208,7 @@ export const mockApi = {
       result.push({
         raceId: toRaceId,
         teamId,
-        racerId: racer.id,
+        racerId: racer.racerId,
         gender: racer.gender, // trust current baseline gender
         class: desiredClass,
         startOrder: nextStartOrder(result, racer.gender, desiredClass),
@@ -244,7 +244,7 @@ export const mockApi = {
     ensureAuth(user, teamId);
     const t = teams.find(t => t.teamId === teamId);
     if (!t) throw new Error("Team not found");
-    const racer = t.racers.find(r => r.id === racerId);
+    const racer = t.racers.find(r => r.racerId === racerId);
     if (!racer) throw new Error("Racer not found");
 
     const k = key(raceId, teamId);
@@ -262,7 +262,7 @@ export const mockApi = {
       throw new Error(`Varsity Alternate is capped at 1 for ${racer.gender}.`);
 
     const entry: RosterEntry = {
-      raceId, teamId, racerId: racer.id, gender: racer.gender, class: rc,
+      raceId, teamId, racerId: racer.racerId, gender: racer.gender, class: rc,
       startOrder: nextStartOrder(list, racer.gender, rc),
     };
     list.push(entry);
@@ -285,7 +285,7 @@ export const mockApi = {
 
     // If baseline is Provisional, prevent change
     const team = teams.find(t => t.teamId === teamId);
-    const racer = team?.racers.find(r => r.id === racerId);
+    const racer = team?.racers.find(r => r.racerId === racerId);
     if (racer?.class === "Provisional" && newClass !== "Provisional") {
       throw new Error("Provisional racers must remain Provisional for all races.");
     }
@@ -383,7 +383,7 @@ export const mockApi = {
             );
             if (!entry) continue;
             const team = teams.find(t => t.teamId === tid)!;
-            const racer = team.racers.find(r => r.id === entry.racerId);
+            const racer = team.racers.find(r => r.racerId === entry.racerId);
             if (!racer) continue;
             result.push({
               raceId,

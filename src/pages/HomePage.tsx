@@ -68,12 +68,12 @@ export default function HomePage() {
 
     function badgeForTeam(t: Team) {
         const roster = rostersByTeam[t.teamId] ?? [];
-        const teamRacerIds = new Set(t.racers.map(r => r.id));
+        const teamRacerIds = new Set(t.racers.map(r => r.racerId));
         const rosterRacerIds = new Set(roster.map(e => e.racerId));
 
         const allAssigned =
             t.racers.length > 0 &&
-            t.racers.every(r => rosterRacerIds.has(r.id)) &&
+            t.racers.every(r => rosterRacerIds.has(r.racerId)) &&
             roster.length >= t.racers.length;
 
         const allHaveStartOrder =
@@ -86,7 +86,7 @@ export default function HomePage() {
             return { kind: "warn" as const, title: "Some roster entries missing start order", symbol: "!" };
         }
         // default: some racers not on roster
-        const missingCount = t.racers.filter(r => !rosterRacerIds.has(r.id)).length;
+        const missingCount = t.racers.filter(r => !rosterRacerIds.has(r.racerId)).length;
         return { kind: "warn" as const, title: `${missingCount} racer(s) not on roster`, symbol: "!" };
     }
 

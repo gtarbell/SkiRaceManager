@@ -35,10 +35,16 @@ export const api = {
     return req(`/teams/${teamId}`);
   },
 
+  async addRacer(teamId: string, input: Omit<Racer, "racerId" | "teamId">): Promise<Racer> {
+    return req(`/teams/${teamId}/racers`, { method: "POST", body: JSON.stringify(input) })
+  },
 
-  // addRacer: (teamId: string, input: { name: string; gender: "Male"|"Female"; class: string }) =>
-  //   req(`/teams/${teamId}/racers`, { method: "POST", body: JSON.stringify(input) }),
-
+  async updateRacer(teamId: string, racerId: string, patch: Partial<Omit<Racer, "racerId" | "teamId">>): Promise<Racer> {
+    return req(`/teams/${teamId}/racers/${racerId}`, { method: "PATCH", body: JSON.stringify(patch) })
+  },
+  async removeRacer(teamId: string, racerId: string): Promise<void> {
+    req(`/teams/${teamId}/racers/${racerId}`, { method: "DELETE" });
+  },
   // updateRacer: (teamId: string, racerId: string, patch: any) =>
   //   req(`/teams/${teamId}/racers/${racerId}`, { method: "PATCH", body: JSON.stringify(patch) }),
 

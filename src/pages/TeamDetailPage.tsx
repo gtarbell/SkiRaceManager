@@ -62,7 +62,7 @@ export default function TeamDetailPage() {
   }, [team, filterGender]);
 
   const startEdit = (r: Racer) => {
-    setDraft({ id: r.id, name: r.name, gender: r.gender, class: r.class });
+    setDraft({ id: r.racerId, name: r.name, gender: r.gender, class: r.class });
   };
 
   const resetDraft = () => setDraft(emptyDraft(genders, classes));
@@ -72,14 +72,14 @@ export default function TeamDetailPage() {
     setErr(null);
     try {
       if (draft.id) {
-        const updated = await mockApi.updateRacer(team.teamId, draft.id, {
+        const updated = await api.updateRacer(team.teamId, draft.id, {
           name: draft.name.trim(),
           gender: draft.gender,
           class: draft.class,
         });
-        setTeam({ ...team, racers: team.racers.map(r => (r.id === updated.id ? updated : r)) });
+        setTeam({ ...team, racers: team.racers.map(r => (r.racerId === updated.racerId ? updated : r)) });
       } else {
-        const created = await mockApi.addRacer(team.teamId, {
+        const created = await api.addRacer(team.teamId, {
           name: draft.name.trim(),
           gender: draft.gender,
           class: draft.class,
@@ -93,7 +93,7 @@ export default function TeamDetailPage() {
   };
 
   const askRemove = (r: Racer) => {
-    setToRemoveId(r.id);
+    setToRemoveId(r.racerId);
     setToRemoveName(r.name);
     setConfirmOpen(true);
   };
@@ -103,8 +103,8 @@ export default function TeamDetailPage() {
     if (!team || !toRemoveId) return;
     setErr(null);
     try {
-      await mockApi.removeRacer(team.teamId, toRemoveId);
-      setTeam({ ...team, racers: team.racers.filter(r => r.id !== toRemoveId) });
+      await api.removeRacer(team.teamId, toRemoveId);
+      setTeam({ ...team, racers: team.racers.filter(r => r.racerId !== toRemoveId) });
       if (draft.id === toRemoveId) resetDraft();
     } catch (e: any) {
       setErr(e.message ?? "Failed to remove racer");
@@ -196,7 +196,7 @@ export default function TeamDetailPage() {
               </thead>
               <tbody>
                 {visibleRacers.map(r => (
-                  <tr key={r.id}>
+                  <tr key={r.racerId}>
                     <td>{r.name}</td>
                     <td>{r.gender}</td>
                     <td>{r.class}</td>
