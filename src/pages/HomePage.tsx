@@ -55,7 +55,7 @@ export default function HomePage() {
         try {
         const entries = await Promise.all(
             teams.map(async (t) => {
-            const ros = await mockApi.getRoster(user!, nextRace.raceId, t.teamId);
+            const ros = await api.getRoster(user!, nextRace.raceId, t.teamId);
             return [t.teamId, ros] as const;
             })
         );

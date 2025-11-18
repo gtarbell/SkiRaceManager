@@ -25,8 +25,8 @@ export default function TeamDetailPage() {
   const { teamId } = useParams<{ teamId: string }>();
   const [team, setTeam] = useState<Team | null>(null);
   const [err, setErr] = useState<string | null>(null);
-  const genders = mockApi.genders();
-  const classes = mockApi.classes();
+  const genders = api.genders();
+  const classes = api.classes();
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [toRemoveId, setToRemoveId] = useState<string | null>(null);
   const [toRemoveName, setToRemoveName] = useState<string | null>(null);
@@ -127,7 +127,7 @@ export default function TeamDetailPage() {
           Filter by gender:
           <select value={filterGender} onChange={e => setFilterGender(e.target.value as any)}>
             <option value="All">All</option>
-            {mockApi.genders().map(g => (
+            {api.genders().map(g => (
               <option key={g} value={g}>{g}</option>
             ))}
           </select>
@@ -152,7 +152,7 @@ export default function TeamDetailPage() {
                 value={draft.gender}
                 onChange={e => setDraft({ ...draft, gender: e.target.value as Gender })}
               >
-                {mockApi.genders().map(g => <option key={g} value={g}>{g}</option>)}
+                {api.genders().map(g => <option key={g} value={g}>{g}</option>)}
               </select>
             </label>
             <label>
@@ -161,7 +161,7 @@ export default function TeamDetailPage() {
                 value={draft.class}
                 onChange={e => setDraft({ ...draft, class: e.target.value as RacerClass })}
               >
-                {mockApi.classes().map(c => <option key={c} value={c}>{c}</option>)}
+                {api.classes().map(c => <option key={c} value={c}>{c}</option>)}
               </select>
             </label>
             <div className="row">

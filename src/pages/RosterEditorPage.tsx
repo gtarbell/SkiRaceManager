@@ -32,8 +32,8 @@ export default function RosterEditorPage() {
         const [r, t, elig, ros, races] = await Promise.all([
           api.getRace(raceId!),
           api.getTeamById(teamId!),
-          mockApi.eligibleRacers(user, teamId!),
-          mockApi.getRoster(user, raceId!, teamId!),
+          api.eligibleRacers(user, teamId!),
+          api.getRoster(user, raceId!, teamId!),
           api.listRaces(),
         ]);
         if (!r) throw new Error("Race not found");
@@ -50,8 +50,8 @@ export default function RosterEditorPage() {
     })();
   }, [user, raceId, teamId, navigate]);
 
-  const genders: Gender[] = mockApi.genders();
-  const classes: RacerClass[] = mockApi.classes();
+  const genders: Gender[] = api.genders();
+  const classes: RacerClass[] = api.classes();
   const racerById = (id: string) => team?.racers.find(r => r.racerId === id);
 
   const eligByGender = useMemo(() => {
@@ -83,23 +83,25 @@ export default function RosterEditorPage() {
     if (!user) return;
     setErr(null);
     try {
-      const updated = await mockApi.addToRoster(user, raceId!, teamId!, racer.racerId, desired);
-      setRoster(updated);
+      const updated = await api.addToRoster(user, raceId!, teamId!, racer, desired);
+      var newroster = await api.getRoster(user, raceId!, teamId!);
+      setRoster(newroster);
     } catch (e: any) { setErr(e.message ?? "Failed to add"); setShowErr(true);}
   }
   async function remove(racerId: string) {
     if (!user) return;
     setErr(null);
     try {
-      const updated = await mockApi.removeFromRoster(user, raceId!, teamId!, racerId);
-      setRoster(updated);
+      const updated = await api.removeFromRoster(user, raceId!, teamId!, racerId);
+      var newroster = await api.getRoster(user, raceId!, teamId!);
+      setRoster(newroster);
     } catch (e: any) { setErr(e.message ?? "Failed to remove"); setShowErr(true);}
   }
   async function copyFromOtherRace() {
   if (!user) return;
   if (!copyFromRaceId) return;
   try {
-    const updated = await mockApi.copyRosterFromRace(user, copyFromRaceId, raceId!, teamId!);
+    const updated = await api.copyRosterFromRace(user, copyFromRaceId, raceId!, teamId!);
     setRoster(updated);
     setErr(`Roster copied from "${allRaces.find(r => r.raceId === copyFromRaceId)?.name}". ` +
            `Caps and Provisional locks were enforced.`);
@@ -113,16 +115,18 @@ export default function RosterEditorPage() {
     if (!user) return;
     setErr(null);
     try {
-      const updated = await mockApi.updateEntryClass(user, raceId!, teamId!, racerId, newClass);
-      setRoster(updated);
+      await api.updateEntryClass(user, raceId!, teamId!, racerId, newClass);
+      var newroster = await api.getRoster(user, raceId!, teamId!);
+      setRoster(newroster);
     } catch (e: any) { setErr(e.message ?? "Failed to update class"); setShowErr(true);}
   }
   async function move(racerId: string, dir: "up" | "down") {
     if (!user) return;
     setErr(null);
     try {
-      const updated = await mockApi.moveEntry(user, raceId!, teamId!, racerId, dir);
-      setRoster(updated);
+      await api.moveEntry(user, raceId!, teamId!, racerId, dir);
+      var newroster = await api.getRoster(user, raceId!, teamId!);
+      setRoster(newroster);
     } catch (e: any) { setErr(e.message ?? "Failed to reorder"); setShowErr(true);}
   }
 

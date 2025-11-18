@@ -26,7 +26,7 @@ export default function StartListPage() {
         const r = await api.getRace(raceId!);
         if (!r) throw new Error("Race not found");
         setRace(r);
-        const existing = await mockApi.getStartList(user, raceId!);
+        const existing = await api.getStartList(user, raceId!);
         setList(existing);
       } catch (e: any) {
         setErr(e.message ?? "Failed to load start list");
@@ -39,7 +39,7 @@ export default function StartListPage() {
     if (!user) return;
     setBusy(true);
     try {
-      const res = await mockApi.generateStartList(user, raceId!);
+      const res = await api.generateStartList(user, raceId!);
       setList(res);
     } catch (e: any) {
       setErr(e.message ?? "Failed to generate start list");
