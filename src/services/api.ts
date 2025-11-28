@@ -105,14 +105,14 @@ export const api = {
 
   },
 
-  async addToRoster (user: any, raceId: string, teamId: string, racer: { racerId: string; gender: "Male"|"Female"; class: string }, desiredClass?: string) {
+  async addToRoster (user: any, raceId: string, teamId: string, racer: { racerId: string; gender: "Male"|"Female"; class: string }, desiredClass?: string) : Promise<RosterEntry[]>{
     return req(`/races/${raceId}/roster/${teamId}/add`, {
       method: "POST",
       body: JSON.stringify({ racerId: racer.racerId, desiredClass, rGender: racer.gender, rBaseClass: racer.class }),
     });
   },
 
-  async removeFromRoster (user: any, raceId: string, teamId: string, racerId: string) {
+  async removeFromRoster (user: any, raceId: string, teamId: string, racerId: string) : Promise<RosterEntry[]>{
     return req(`/races/${raceId}/roster/${teamId}/entry/${racerId}`, { method: "DELETE" });
   },
 

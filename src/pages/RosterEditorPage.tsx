@@ -84,8 +84,7 @@ export default function RosterEditorPage() {
     setErr(null);
     try {
       const updated = await api.addToRoster(user, raceId!, teamId!, racer, desired);
-      var newroster = await api.getRoster(user, raceId!, teamId!);
-      setRoster(newroster);
+      setRoster(updated);
     } catch (e: any) { setErr(e.message ?? "Failed to add"); setShowErr(true);}
   }
   async function remove(racerId: string) {
@@ -93,8 +92,7 @@ export default function RosterEditorPage() {
     setErr(null);
     try {
       const updated = await api.removeFromRoster(user, raceId!, teamId!, racerId);
-      var newroster = await api.getRoster(user, raceId!, teamId!);
-      setRoster(newroster);
+      setRoster(updated);
     } catch (e: any) { setErr(e.message ?? "Failed to remove"); setShowErr(true);}
   }
   async function copyFromOtherRace() {
