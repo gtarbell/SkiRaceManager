@@ -19,6 +19,10 @@ async function req<T>(path: string, init?: RequestInit): Promise<T> {
   const text = await res.text();
   const body = text ? JSON.parse(text) : null;
   if (!res.ok) throw new Error(body?.error || `HTTP ${res.status}`);
+  // Some endpoints may return { error } with 200; treat those as failures too
+  if (body && !Array.isArray(body) && typeof body === "object" && "error" in body) {
+    throw new Error((body as any).error);
+  }
   return body as T;
 }
 

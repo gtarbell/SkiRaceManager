@@ -84,6 +84,7 @@ export default function RosterEditorPage() {
     setErr(null);
     try {
       const updated = await api.addToRoster(user, raceId!, teamId!, racer, desired);
+      if (!Array.isArray(updated)) throw new Error("Unexpected roster response");
       setRoster(updated);
     } catch (e: any) { setErr(e.message ?? "Failed to add"); setShowErr(true);}
   }
