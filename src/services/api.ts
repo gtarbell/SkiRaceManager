@@ -36,12 +36,13 @@ function countByClass(entries: RosterEntry[], gender: Gender, rc: RacerClass) {
   return byGender(entries, gender).filter(e => e.class === rc).length;
 }
 function nextStartOrder(entries: RosterEntry[], gender: Gender, rc: RacerClass) {
+  if (rc === "DNS - Did Not Start") return 0;
   const list = byGender(entries, gender).filter(e => e.class === rc);
   return list.length === 0 ? 1 : Math.max(...list.map(e => e.startOrder)) + 1;
 }
 
-
-const classOrder: RacerClass[] = ["Varsity", "Varsity Alternate", "Jr Varsity", "Provisional"];
+const rosterClasses: RacerClass[] = ["Varsity", "Varsity Alternate", "Jr Varsity", "Provisional", "DNS - Did Not Start"];
+const racingClassOrder: RacerClass[] = ["Varsity", "Varsity Alternate", "Jr Varsity", "Provisional"];
 
 function shuffle<T>(arr: T[]): T[] {
   const a = arr.slice();
@@ -65,7 +66,7 @@ export const api = {
     return ["Male", "Female"];
   },
   classes(): RacerClass[] {
-    return ["Varsity", "Varsity Alternate", "Jr Varsity", "Provisional"];
+    return rosterClasses;
   },
 
   async loginByName(name: string): Promise<User> {
@@ -149,14 +150,16 @@ export const api = {
     //const t = teams.find(t => t.teamId === teamId);
     if (!t) throw new Error("Team not found");
 
-    // Build a fresh list enforcing caps and Provisional lock
+    // Build a fresh list enforcing caps and Provisional lock (except DNS)
     const result: RosterEntry[] = [];
     const pushIfAllowed = (entry: RosterEntry) => {
       const racer = t.racers.find(r => r.racerId === entry.racerId);
       if (!racer) return; // skip if racer no longer on team
       // lock Provisional to Provisional
       const desiredClass: RacerClass =
-        racer.class === "Provisional" ? "Provisional" : entry.class;
+        racer.class === "Provisional" && entry.class !== "DNS - Did Not Start"
+          ? "Provisional"
+          : entry.class;
 
       if (desiredClass === "Varsity" && countByClass(result, entry.gender, "Varsity") >= 5) return;
       if (desiredClass === "Varsity Alternate" && countByClass(result, entry.gender, "Varsity Alternate") >= 1) return;
@@ -167,12 +170,12 @@ export const api = {
         racerId: racer.racerId,
         gender: racer.gender, // trust current baseline gender
         class: desiredClass,
-        startOrder: nextStartOrder(result, racer.gender, desiredClass),
+        startOrder: desiredClass === "DNS - Did Not Start" ? 0 : nextStartOrder(result, racer.gender, desiredClass),
       });
     };
 
-    // Copy order with sensible priority: Varsity, V-Alt, JV, Provisional (preserve original order inside each)
-    const classPriority: RacerClass[] = ["Varsity", "Varsity Alternate", "Jr Varsity", "Provisional"];
+    // Copy order with sensible priority preserving original order inside each
+    const classPriority: RacerClass[] = rosterClasses;
     const ordered = source
       .slice()
       .sort((a, b) => {
@@ -197,9 +200,10 @@ export const api = {
 
  
   normalizeStartOrders(raceId: string, teamId: string, gender: Gender, rc?: RacerClass) {
+    if (rc === "DNS - Did Not Start") return;
     const k = key(raceId, teamId);
     const list = rosters[k] ?? [];
-    const buckets = rc ? [rc] : (["Varsity", "Varsity Alternate", "Jr Varsity", "Provisional"] as RacerClass[]);
+    const buckets = rc ? [rc] : racingClassOrder;
     for (const c of buckets) {
       const bucket = list
         .filter(e => e.gender === gender && e.class === c)
@@ -226,7 +230,7 @@ export const api = {
     const makeGenderList = (gender: Gender): StartListEntry[] => {
       const result: StartListEntry[] = [];
 
-      for (const cls of classOrder) {
+      for (const cls of racingClassOrder) {
         // max start position for this class+gender across all teams
         let maxPos = 0;
         for (const tid of allTeamIds) {

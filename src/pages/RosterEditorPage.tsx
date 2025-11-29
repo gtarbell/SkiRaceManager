@@ -64,9 +64,10 @@ export default function RosterEditorPage() {
   }, [genders, eligible, roster]);
 
   const view = useMemo(() => {
-    const byClass: Record<RacerClass, RosterEntry[]> = {
-      "Varsity": [], "Varsity Alternate": [], "Jr Varsity": [], "Provisional": []
-    };
+    const byClass: Record<RacerClass, RosterEntry[]> = classes.reduce((acc, cls) => {
+      acc[cls] = [];
+      return acc;
+    }, {} as Record<RacerClass, RosterEntry[]>);
     roster.filter(e => e.gender === genderTab)
           .forEach(e => byClass[e.class].push(e));
     for (const k of Object.keys(byClass) as RacerClass[]) {
@@ -77,7 +78,7 @@ export default function RosterEditorPage() {
       valt: byClass["Varsity Alternate"].length,
     };
     return { byClass, counts };
-  }, [roster, genderTab]);
+  }, [classes, roster, genderTab]);
 
   async function add(racer: Racer, desired?: RacerClass) {
     if (!user) return;
@@ -182,50 +183,53 @@ export default function RosterEditorPage() {
         <div className="card">
           <h2>Eligible Racers ({eligByGender[genderTab]?.length ?? 0})</h2>
           {eligByGender[genderTab]?.length ? (
-             <ul className="list">
-            {eligByGender[genderTab].map(r => {
+            <ul className="list">
+              {eligByGender[genderTab].map(r => {
+                const dnsButton = (
+                  <button className="secondary" onClick={() => add(r, "DNS - Did Not Start")}>Add DNS</button>
+                );
                 if (r.class === "Provisional") {
-                // Provisional stays as a single primary action
-                return (
+                  return (
                     <li key={r.racerId} className="list-item">
-                    <div>
+                      <div>
                         <div className="title">{r.name}</div>
                         <div className="muted small">{r.gender} • Baseline {r.class}</div>
-                    </div>
-                    <div className="row">
+                      </div>
+                      <div className="row">
                         <button onClick={() => add(r, "Provisional")}>Add Provisional</button>
-                    </div>
+                        {dnsButton}
+                      </div>
                     </li>
-                );
+                  );
                 }
 
                 // Decide which button should be primary based on baseline class
                 const primary = r.class; // "Varsity" | "Varsity Alternate" | "Jr Varsity"
 
                 const btn = (label: string, desired: RacerClass, isPrimary: boolean) => (
-                <button
+                  <button
                     className={isPrimary ? undefined : "secondary"}
                     onClick={() => add(r, desired)}
-                >
+                  >
                     {label}
-                </button>
+                  </button>
                 );
 
                 return (
-                <li key={r.racerId} className="list-item">
+                  <li key={r.racerId} className="list-item">
                     <div>
-                    <div className="title">{r.name}</div>
-                    <div className="muted small">{r.gender} • Baseline {r.class}</div>
+                      <div className="title">{r.name}</div>
+                      <div className="muted small">{r.gender} • Baseline {r.class}</div>
                     </div>
-                    <div className="row">                    
-                    {btn("Add Varsity", "Varsity", primary === "Varsity")}
-                    {btn("Add VA", "Varsity Alternate", primary === "Varsity Alternate")}
-                    {btn("Add JV", "Jr Varsity", primary === "Jr Varsity")}
-                    
+                    <div className="row">
+                      {btn("Add Varsity", "Varsity", primary === "Varsity")}
+                      {btn("Add VA", "Varsity Alternate", primary === "Varsity Alternate")}
+                      {btn("Add JV", "Jr Varsity", primary === "Jr Varsity")}
+                      {dnsButton}
                     </div>
-                </li>
+                  </li>
                 );
-            })}
+              })}
             </ul>
           ) : (<div className="muted">No available racers for {genderTab}.</div>)}
         </div>
@@ -234,10 +238,10 @@ export default function RosterEditorPage() {
         <div className="card">
           <h2>Roster — {genderTab}</h2>
           <div className="muted small" style={{marginBottom:8}}>
-            Caps per gender: <b>Varsity ≤ 5</b>, <b>Varsity Alternate ≤ 1</b>. Provisional class is fixed.
+            Caps per gender: <b>Varsity ≤ 5</b>, <b>Varsity Alternate ≤ 1</b>. Provisional class is fixed. DNS entries are excluded from start order and bibs.
           </div>
 
-          {(["Varsity", "Varsity Alternate", "Jr Varsity", "Provisional"] as RacerClass[]).map(c => (
+          {classes.map(c => (
             <div key={c} style={{marginBottom:16}}>
               <h3 style={{margin:"12px 0 8px"}}>{c}</h3>
               {view.byClass[c].length === 0 ? (
@@ -257,8 +261,8 @@ export default function RosterEditorPage() {
                       const racer = racerById(e.racerId);
                       const isProvBaseline = racer?.class === "Provisional";
                       const options: RacerClass[] = isProvBaseline
-                        ? ["Provisional"]
-                        : (["Varsity", "Varsity Alternate", "Jr Varsity"] as RacerClass[]);
+                        ? (["Provisional", "DNS - Did Not Start"] as RacerClass[])
+                        : (["Varsity", "Varsity Alternate", "Jr Varsity", "DNS - Did Not Start"] as RacerClass[]);
                       return (
                         <tr key={e.racerId}>
                           <td>{e.startOrder}</td>

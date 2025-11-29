@@ -3,7 +3,7 @@ export type Role = "ADMIN" | "COACH";
 // Removed "Non-Binary"
 export type Gender = "Male" | "Female";
 
-export type RacerClass = "Varsity" | "Varsity Alternate" | "Jr Varsity" | "Provisional";
+export type RacerClass = "Varsity" | "Varsity Alternate" | "Jr Varsity" | "Provisional" | "DNS - Did Not Start";
 
 export interface User {
   id: string;
