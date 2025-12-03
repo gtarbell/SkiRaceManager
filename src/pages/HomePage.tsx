@@ -70,19 +70,20 @@ export default function HomePage() {
         const roster = rostersByTeam[t.teamId] ?? [];
         const teamRacerIds = new Set(t.racers.map(r => r.racerId));
         const rosterRacerIds = new Set(roster.map(e => e.racerId));
+        const isDns = (cls: RosterEntry["class"]) => cls === "DNS" || cls === "DNS - Did Not Start";
 
         const allAssigned =
             t.racers.length > 0 &&
             t.racers.every(r => rosterRacerIds.has(r.racerId)) &&
             roster.length >= t.racers.length;
 
-        const allHaveStartOrder =
-            roster.every(e => typeof e.startOrder === "number" && e.startOrder > 0);
+        const allHaveStartOrderOrDns =
+            roster.every(e => (typeof e.startOrder === "number" && e.startOrder > 0) || isDns(e.class));
 
-        if (allAssigned && allHaveStartOrder) {
-            return { kind: "ok" as const, title: "All racers assigned with start orders", symbol: "✓" };
+        if (allAssigned && allHaveStartOrderOrDns) {
+            return { kind: "ok" as const, title: "All racers assigned with start orders or DNS", symbol: "✓" };
         }
-        if (!allHaveStartOrder) {
+        if (!allHaveStartOrderOrDns) {
             return { kind: "warn" as const, title: "Some roster entries missing start order", symbol: "!" };
         }
         // default: some racers not on roster
