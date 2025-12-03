@@ -70,7 +70,7 @@ export default function HomePage() {
         const roster = rostersByTeam[t.teamId] ?? [];
         const teamRacerIds = new Set(t.racers.map(r => r.racerId));
         const rosterRacerIds = new Set(roster.map(e => e.racerId));
-        const isDns = (cls: RosterEntry["class"]) => cls === "DNS" || cls === "DNS - Did Not Start";
+        const isDns = (cls: RosterEntry["class"]) => cls === "DNS - Did Not Start" || (cls as any) === "DNS";
 
         const allAssigned =
             t.racers.length > 0 &&

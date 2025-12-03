@@ -65,7 +65,7 @@ export default function RosterEditorPage() {
 
   const view = useMemo(() => {
     const normalizeClass = (cls: RosterEntry["class"]): RacerClass =>
-      cls === "DNS" ? "DNS - Did Not Start" : cls;
+      cls === "DNS - Did Not Start" || (cls as any) === "DNS" ? "DNS - Did Not Start" : cls;
     const byClass: Record<RacerClass, RosterEntry[]> = classes.reduce((acc, cls) => {
       acc[cls] = [];
       return acc;
@@ -270,7 +270,7 @@ export default function RosterEditorPage() {
                     {view.byClass[c].map((e, idx) => {
                       const racer = racerById(e.racerId);
                       const isProvBaseline = racer?.class === "Provisional";
-                      const isDns = e.class === "DNS - Did Not Start";
+                      const isDns = e.class === "DNS - Did Not Start" || (e.class as any) === "DNS";
                       const isVaOrJv = e.class === "Varsity Alternate" || e.class === "Jr Varsity";
                       const showUp = !isDns && (isVaOrJv || (e.startOrder ?? 0) > 1);
                       const isLastJv = e.class === "Jr Varsity" && idx === view.byClass[c].length - 1;
@@ -284,10 +284,10 @@ export default function RosterEditorPage() {
                           <td>{isDns ? "—" : e.startOrder}</td>
                           <td>{racer?.name ?? e.racerId}</td>
                           <td>
-                            <select
-                              value={e.class === "DNS" ? "DNS - Did Not Start" : e.class}
-                              onChange={ev => changeClass(e.racerId, ev.target.value as RacerClass)}
-                            >
+                          <select
+                            value={isDns ? "DNS - Did Not Start" : e.class}
+                            onChange={ev => changeClass(e.racerId, ev.target.value as RacerClass)}
+                          >
                               {options.map(opt => (
                                 <option key={opt} value={opt}>{opt}</option>
                               ))}
