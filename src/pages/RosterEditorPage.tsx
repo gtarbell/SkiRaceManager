@@ -104,19 +104,23 @@ export default function RosterEditorPage() {
     } catch (e: any) { setErr(e.message ?? "Failed to remove"); setShowErr(true);}
   }
   async function copyFromOtherRace() {
-  if (!user) return;
-  if (!copyFromRaceId) return;
-  try {
-    const updated = await api.copyRosterFromRace(user, copyFromRaceId, raceId!, teamId!);
-    setRoster(updated);
-    setErr(`Roster copied from "${allRaces.find(r => r.raceId === copyFromRaceId)?.name}". ` +
-           `Caps and Provisional locks were enforced.`);
-    setShowErr(true);
-  } catch (e: any) {
-    setErr(e.message ?? "Failed to copy roster");
-    setShowErr(true);
+    if (!user) return;
+    if (!copyFromRaceId) return;
+    if (roster.length > 0) {
+      const ok = window.confirm("Copying will discard current roster entries for this race. Continue?");
+      if (!ok) return;
+    }
+    try {
+      const updated = await api.copyRosterFromRace(user, copyFromRaceId, raceId!, teamId!);
+      setRoster(updated);
+      setErr(`Roster copied from "${allRaces.find(r => r.raceId === copyFromRaceId)?.name}". ` +
+             `Caps and Provisional locks were enforced.`);
+      setShowErr(true);
+    } catch (e: any) {
+      setErr(e.message ?? "Failed to copy roster");
+      setShowErr(true);
+    }
   }
-}
   async function changeClass(racerId: string, newClass: RacerClass) {
     if (!user) return;
     setErr(null);

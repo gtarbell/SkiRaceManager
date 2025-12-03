@@ -142,53 +142,10 @@ export const api = {
   ): Promise<RosterEntry[]> {
     api.ensureAuth(user, teamId);
     if (fromRaceId === toRaceId) throw new Error("Choose a different race to copy from.");
-
-    const source = structuredClone(rosters[key(fromRaceId, teamId)] ?? []);
-    // If nothing to copy, just clear target roster to empty copy
-    const targetKey = key(toRaceId, teamId);
-    const t = await this.getTeamById(teamId);
-    //const t = teams.find(t => t.teamId === teamId);
-    if (!t) throw new Error("Team not found");
-
-    // Build a fresh list enforcing caps and Provisional lock (except DNS)
-    const result: RosterEntry[] = [];
-    const pushIfAllowed = (entry: RosterEntry) => {
-      const racer = t.racers.find(r => r.racerId === entry.racerId);
-      if (!racer) return; // skip if racer no longer on team
-      // lock Provisional to Provisional
-      const desiredClass: RacerClass =
-        racer.class === "Provisional" && entry.class !== "DNS - Did Not Start"
-          ? "Provisional"
-          : entry.class;
-
-      if (desiredClass === "Varsity" && countByClass(result, entry.gender, "Varsity") >= 5) return;
-      if (desiredClass === "Varsity Alternate" && countByClass(result, entry.gender, "Varsity Alternate") >= 1) return;
-
-      result.push({
-        raceId: toRaceId,
-        teamId,
-        racerId: racer.racerId,
-        gender: racer.gender, // trust current baseline gender
-        class: desiredClass,
-        startOrder: desiredClass === "DNS - Did Not Start" ? 0 : nextStartOrder(result, racer.gender, desiredClass),
-      });
-    };
-
-    // Copy order with sensible priority preserving original order inside each
-    const classPriority: RacerClass[] = rosterClasses;
-    const ordered = source
-      .slice()
-      .sort((a, b) => {
-        if (a.gender !== b.gender) return a.gender.localeCompare(b.gender);
-        const pa = classPriority.indexOf(a.class);
-        const pb = classPriority.indexOf(b.class);
-        return pa === pb ? a.startOrder - b.startOrder : pa - pb;
-      });
-
-    for (const e of ordered) pushIfAllowed(e);
-
-    rosters[targetKey] = result;
-    return structuredClone(result);
+    return req(`/races/${toRaceId}/roster/${teamId}/copy`, {
+      method: "POST",
+      body: JSON.stringify({ fromRaceId }),
+    });
   },
 
   async eligibleRacers(user: User, teamId: string): Promise<Racer[]> {
