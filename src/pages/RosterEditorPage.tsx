@@ -64,14 +64,20 @@ export default function RosterEditorPage() {
   }, [genders, eligible, roster]);
 
   const view = useMemo(() => {
+    const normalizeClass = (cls: RosterEntry["class"]): RacerClass =>
+      cls === "DNS" ? "DNS - Did Not Start" : cls;
     const byClass: Record<RacerClass, RosterEntry[]> = classes.reduce((acc, cls) => {
       acc[cls] = [];
       return acc;
     }, {} as Record<RacerClass, RosterEntry[]>);
     roster.filter(e => e.gender === genderTab)
-          .forEach(e => byClass[e.class].push(e));
+          .forEach(e => {
+            const cls = normalizeClass(e.class);
+            byClass[cls] = byClass[cls] || [];
+            byClass[cls].push({ ...e, class: cls });
+          });
     for (const k of Object.keys(byClass) as RacerClass[]) {
-      byClass[k].sort((a,b)=>a.startOrder - b.startOrder);
+      byClass[k].sort((a,b)=>(a.startOrder ?? Infinity) - (b.startOrder ?? Infinity));
     }
     const counts = {
       varsity: byClass["Varsity"].length,
@@ -257,21 +263,26 @@ export default function RosterEditorPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {view.byClass[c].map(e => {
+                    {view.byClass[c].map((e, idx) => {
                       const racer = racerById(e.racerId);
                       const isProvBaseline = racer?.class === "Provisional";
+                      const isDns = e.class === "DNS - Did Not Start";
+                      const isVaOrJv = e.class === "Varsity Alternate" || e.class === "Jr Varsity";
+                      const showUp = !isDns && (isVaOrJv || (e.startOrder ?? 0) > 1);
+                      const isLastJv = e.class === "Jr Varsity" && idx === view.byClass[c].length - 1;
+                      const isLastProv = e.class === "Provisional" && idx === view.byClass[c].length - 1;
+                      const showDown = !isDns && !isLastJv && !isLastProv;
                       const options: RacerClass[] = isProvBaseline
                         ? (["Provisional", "DNS - Did Not Start"] as RacerClass[])
                         : (["Varsity", "Varsity Alternate", "Jr Varsity", "DNS - Did Not Start"] as RacerClass[]);
                       return (
                         <tr key={e.racerId}>
-                          <td>{e.startOrder}</td>
+                          <td>{isDns ? "—" : e.startOrder}</td>
                           <td>{racer?.name ?? e.racerId}</td>
                           <td>
                             <select
-                              value={e.class}
+                              value={e.class === "DNS" ? "DNS - Did Not Start" : e.class}
                               onChange={ev => changeClass(e.racerId, ev.target.value as RacerClass)}
-                              disabled={isProvBaseline}
                             >
                               {options.map(opt => (
                                 <option key={opt} value={opt}>{opt}</option>
@@ -280,8 +291,12 @@ export default function RosterEditorPage() {
                           </td>
                           <td className="right">
                             <div className="row" style={{justifyContent:"flex-end"}}>
-                              <button className="secondary" onClick={() => move(e.racerId, "up")}>↑</button>
-                              <button className="secondary" onClick={() => move(e.racerId, "down")}>↓</button>
+                              {showUp && (
+                                <button className="secondary" onClick={() => move(e.racerId, "up")}>↑</button>
+                              )}
+                              {showDown && (
+                                <button className="secondary" onClick={() => move(e.racerId, "down")}>↓</button>
+                              )}
                               <button className="danger" onClick={() => remove(e.racerId)}>Remove</button>
                             </div>
                           </td>
