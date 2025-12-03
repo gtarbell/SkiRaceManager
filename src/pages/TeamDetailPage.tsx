@@ -32,7 +32,16 @@ export default function TeamDetailPage() {
   const [toRemoveName, setToRemoveName] = useState<string | null>(null);
 
   const [draft, setDraft] = useState<Draft>(emptyDraft(genders, classes));
+  const [highlightTick, setHighlightTick] = useState(0);
+  const [highlightActive, setHighlightActive] = useState(false);
   const [filterGender, setFilterGender] = useState<Gender | "All">("All");
+
+  useEffect(() => {
+    if (!highlightTick) return;
+    setHighlightActive(true);
+    const t = setTimeout(() => setHighlightActive(false), 1200);
+    return () => clearTimeout(t);
+  }, [highlightTick]);
 
   useEffect(() => {
     if (!user) {
@@ -63,6 +72,7 @@ export default function TeamDetailPage() {
 
   const startEdit = (r: Racer) => {
     setDraft({ racerId: r.racerId, name: r.name, gender: r.gender, class: r.class });
+    setHighlightTick(t => t + 1);
   };
 
   const resetDraft = () => setDraft(emptyDraft(genders, classes));
@@ -135,7 +145,7 @@ export default function TeamDetailPage() {
       </div>
 
       <div className="grid">
-        <div className="card">
+        <div className={`card ${highlightActive ? "flash-highlight" : ""}`}>
           <h2>{draft.racerId ? "Edit Racer" : "Add Racer"}</h2>
           <div className="form">
             <label>
@@ -174,9 +184,7 @@ export default function TeamDetailPage() {
                 </button>
               )}
             </div>
-            <p className="muted small">
-              Note: Varsity/V-Alt caps are enforced later at roster time per race.
-            </p>
+            
           </div>
         </div>
 
