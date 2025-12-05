@@ -72,6 +72,64 @@ a.link-button:hover {
   filter: brightness(1.1);
 }
 
+.page-break {
+  page-break-before: always;
+  break-before: page;
+  height: 1px;
+}
+.startlist-columns {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 10px;
+}
+.startlist-card {
+  display: flex;
+  gap: 10px;
+  padding: 10px;
+  border: 1px solid #1f2633;
+  border-radius: 10px;
+  background: #101521;
+}
+.startlist-bib {
+  min-width: 48px;
+  font-weight: 700;
+  font-size: 1.05rem;
+}
+.startlist-name {
+  font-weight: 600;
+}
+
+@media print {
+  body {
+    background: #fff !important;
+    color: #000;
+  }
+  .topbar, .footer, .row .secondary, .link-button, button {
+    display: none !important;
+  }
+  .container {
+    max-width: none;
+    margin: 0;
+    padding: 0 12px;
+  }
+  .card.print-plain {
+    background: #fff;
+    color: #000;
+    border: none;
+    box-shadow: none;
+  }
+  .startlist-card {
+    border-color: #ccc;
+    background: #fff;
+  }
+  .hide-print {
+    display: none !important;
+  }
+  .page-break {
+    display: block;
+  }
+}
+
 .badge {
   display: inline-flex;
   align-items: center;

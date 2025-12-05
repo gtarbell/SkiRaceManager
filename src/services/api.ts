@@ -171,6 +171,10 @@ export const api = {
     return req(`/races/${raceId}/start-list`);
   },
 
+  async getStartListPublic(raceId: string): Promise<{ entries: StartListEntry[]; meta?: any }> {
+    return req(`/races/${raceId}/start-list`);
+  },
+
   async getExcludedBibs(user: User, raceId: string): Promise<number[]> {
     if (user.role !== "ADMIN") throw new Error("Only admins can view start lists.");
     return req(`/races/${raceId}/start-list/excluded`);
