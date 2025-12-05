@@ -80,26 +80,30 @@ a.link-button:hover {
 .startlist-columns {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 10px;
+  gap: 0;
 }
 .startlist-card {
   display: flex;
   gap: 10px;
-  padding: 10px;
+  padding: 4px 6px;
   border: 1px solid #1f2633;
   border-radius: 10px;
   background: #101521;
+  font-size: 0.9rem;
 }
 .startlist-bib {
   min-width: 48px;
   font-weight: 700;
-  font-size: 1.05rem;
+  font-size: 0.95rem;
 }
 .startlist-name {
   font-weight: 600;
 }
 
 @media print {
+  .startlist-name {
+  padding-right: 15px;
+}
   body {
     background: #fff !important;
     color: #000;
@@ -117,10 +121,20 @@ a.link-button:hover {
     color: #000;
     border: none;
     box-shadow: none;
+    border-radius: 0;
+  }
+  .startlist-bib, .small {
+
+  font-size: 0.8rem;
   }
   .startlist-card {
     border-color: #ccc;
     background: #fff;
+    padding: 0 5px;
+    margin-bottom: 0;
+    font-size: 0.8rem;
+    gap: 0;
+    border-radius: 0;
   }
   .hide-print {
     display: none !important;
