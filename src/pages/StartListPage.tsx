@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
-import { Race, StartListEntry } from "../models";
+import { Race, StartListEntry, Team } from "../models";
 import { mockApi } from "../services/mockApi";
 import { api } from "../services/api";
 
@@ -13,9 +13,12 @@ export default function StartListPage() {
   const { raceId } = useParams<{ raceId: string }>();
   const [race, setRace] = useState<Race | null>(null);
   const [list, setList] = useState<StartListEntry[] | null>(null);
+  const [teamOrder, setTeamOrder] = useState<string[]>([]);
+  const [teams, setTeams] = useState<Team[]>([]);
   const [err, setErr] = useState<string | null>(null);
   const [showErr, setShowErr] = useState(false);
   const [isBusy, setBusy] = useState(false);
+  const [excludedInput, setExcludedInput] = useState("");
   
 
   useEffect(() => {
@@ -26,8 +29,15 @@ export default function StartListPage() {
         const r = await api.getRace(raceId!);
         if (!r) throw new Error("Race not found");
         setRace(r);
-        const existing = await api.getStartList(user, raceId!);
-        setList(existing);
+        const [existing, excludes, teamsResp] = await Promise.all([
+          api.getStartList(user, raceId!),
+          api.getExcludedBibs(user, raceId!),
+          api.listTeams(),
+        ]);
+        setList(existing.entries ?? existing);
+        setTeamOrder(existing.meta?.teamsOrder ?? []);
+        setTeams(teamsResp);
+        setExcludedInput(excludes.join(", "));
       } catch (e: any) {
         setErr(e.message ?? "Failed to load start list");
         setShowErr(true);
@@ -35,12 +45,31 @@ export default function StartListPage() {
     })();
   }, [user, raceId, navigate]);
 
+  function parseExcluded(): number[] {
+    return excludedInput
+      .split(/[,\\s]+/)
+      .map(s => s.trim())
+      .filter(Boolean)
+      .map(Number)
+      .filter(n => Number.isFinite(n) && n > 0);
+  }
+
+  async function saveExcluded() {
+    if (!raceId || !user) return;
+    const parsed = parseExcluded();
+    const saved = await api.setExcludedBibs(user, raceId, parsed);
+    setExcludedInput(saved.join(", "));
+  }
+
   async function generate() {
     if (!user) return;
     setBusy(true);
     try {
-      const res = await api.generateStartList(user, raceId!);
-      setList(res);
+      const excludes = parseExcluded();
+      const res = await api.generateStartList(user, raceId!, excludes);
+      setList(res.entries ?? []);
+      setTeamOrder(res.meta?.teamsOrder ?? []);
+      setTeams(await api.listTeams());
     } catch (e: any) {
       setErr(e.message ?? "Failed to generate start list");
       setShowErr(true);
@@ -104,10 +133,27 @@ function downloadCsv() {
           </div>
           <button onClick={generate} disabled={isBusy}>{isBusy ? "Generating…" : "Generate / Regenerate"}</button>
         </div>
+        <div style={{marginTop:12}}>
+          <label className="muted small" style={{display:"block", marginBottom:4}}>Excluded bibs for this race (comma or space separated)</label>
+          <div className="row" style={{alignItems:"center", gap:8}}>
+            <input
+              style={{flex:1}}
+              value={excludedInput}
+              onChange={e => setExcludedInput(e.target.value)}
+              placeholder="e.g. 6, 7, 13, 42, 111"
+            />
+            <button className="secondary" onClick={saveExcluded} disabled={!raceId}>Save</button>
+          </div>
+        </div>
       </div>
 
       <div className="card">
         <h2>Start List</h2>
+        {teamOrder.length > 0 && (
+          <p className="muted small" style={{marginTop:0}}>
+            Team randomization order: {teamOrder.map(tid => teams.find(t => t.teamId === tid)?.name ?? tid).join(" → ")}
+          </p>
+        )}
         {!list || list.length === 0 ? (
           <div className="muted">No start list yet. Click “Generate”.</div>
         ) : (
