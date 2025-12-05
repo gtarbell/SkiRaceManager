@@ -63,3 +63,29 @@ export interface StartListEntry {
   class: RacerClass;
   bib: number;
 }
+
+export type RunStatus = 0 | 1 | 2 | 4; // 1=Finished, 2=DNF, 4=DSQ
+
+export interface RaceResultEntry {
+  raceId: string;
+  bib: number;
+  racerId?: string;
+  racerName: string;
+  teamId?: string;
+  teamName: string;
+  gender: Gender | "Unknown";
+  class: RacerClass | "Unknown";
+  run1Status: RunStatus;
+  run2Status: RunStatus;
+  run1TimeSec?: number;
+  run2TimeSec?: number;
+  run1Points: number;
+  run2Points: number;
+  totalPoints: number;
+}
+
+export interface RaceResultGroup {
+  gender: Gender | "Unknown";
+  class: RacerClass | "Unknown";
+  entries: RaceResultEntry[];
+}

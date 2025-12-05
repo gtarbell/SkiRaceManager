@@ -50,6 +50,7 @@ export default function RacesPage() {
               {user && user.role === "ADMIN" && (
                 <div className="row" style={{ gap: 8, flexWrap: "wrap", alignItems: "center" }}>
                   <Link to={`/races/${r.raceId}/start-list`}>Start List (admin)</Link>
+                  <Link to={`/races/${r.raceId}/results`}>Upload Results</Link>
                   {startListReady[r.raceId] && (
                     <>
                       <span className="row" style={{ gap: 4, alignItems: "center" }}>
@@ -67,6 +68,16 @@ export default function RacesPage() {
                         <button
                           className="icon-only"
                           onClick={() => navigator.clipboard.writeText(`${window.location.origin}/public/races/${r.raceId}/start-list/teams`)}
+                          title="Copy link"
+                        >
+                          🔗
+                        </button>
+                      </span>
+                      <span className="row" style={{ gap: 6, alignItems: "center" }}>
+                        <Link to={`/public/races/${r.raceId}/results`}>Public Results</Link>
+                        <button
+                          className="icon-only"
+                          onClick={() => navigator.clipboard.writeText(`${window.location.origin}/public/races/${r.raceId}/results`)}
                           title="Copy link"
                         >
                           🔗

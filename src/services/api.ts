@@ -1,4 +1,4 @@
-import { Team, User, Racer, Gender, RacerClass, Race, RosterEntry, StartListEntry  } from "../models";
+import { Team, User, Racer, Gender, RacerClass, Race, RosterEntry, StartListEntry, RaceResultEntry, RaceResultGroup  } from "../models";
 
 let users: User[] = [
   { id: "u1", name: "Geddy Admin", role: "ADMIN", teamIds: [] },
@@ -70,6 +70,7 @@ export const api = {
   } ,
 
   async getRace(raceId: string): Promise<Race | undefined> { return req(`/races/${raceId}`); },
+  async getRacePublic(raceId: string): Promise<Race | undefined> { return req(`/races/${raceId}`); },
   async getTeamsForUser(user: User): Promise<Team[]> {
     if (user.role === "ADMIN") 
       return req("/teams/");
@@ -186,5 +187,22 @@ export const api = {
       method: "POST",
       body: JSON.stringify({ excludedBibs: bibs }),
     });
+  },
+
+  async uploadResults(user: User, raceId: string, xml: string): Promise<{ entries: RaceResultEntry[]; issues: string[]; groups?: RaceResultGroup[] }> {
+    if (user.role !== "ADMIN") throw new Error("Only admins can upload results.");
+    return req(`/races/${raceId}/results`, {
+      method: "POST",
+      body: JSON.stringify({ xml }),
+    });
+  },
+
+  async getResults(user: User, raceId: string): Promise<{ entries: RaceResultEntry[]; issues: string[]; groups?: RaceResultGroup[] }> {
+    if (user.role !== "ADMIN") throw new Error("Only admins can view results.");
+    return req(`/races/${raceId}/results`);
+  },
+
+  async getResultsPublic(raceId: string): Promise<{ entries: RaceResultEntry[]; issues: string[]; groups?: RaceResultGroup[] }> {
+    return req(`/races/${raceId}/results`);
   },
 };
