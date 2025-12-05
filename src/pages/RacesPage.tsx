@@ -10,6 +10,7 @@ export default function RacesPage() {
   const [races, setRaces] = useState<Race[] | null>(null);
   const [teams, setTeams] = useState<Team[] | null>(null);
   const [err, setErr] = useState<string | null>(null);
+  const [startListReady, setStartListReady] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     (async () => {
@@ -17,6 +18,17 @@ export default function RacesPage() {
         const [rs, ts] = await Promise.all([api.listRaces(), user ? api.getTeamsForUser(user) : Promise.resolve([])]);
         setRaces(rs);
         setTeams(ts);
+        // quick check if start list exists (no auth for public)
+        const readiness: Record<string, boolean> = {};
+        for (const r of rs) {
+          try {
+            const sl = await api.getStartListPublic(r.raceId);
+            readiness[r.raceId] = Array.isArray(sl) ? sl.length > 0 : (sl.entries?.length ?? 0) > 0;
+          } catch {
+            readiness[r.raceId] = false;
+          }
+        }
+        setStartListReady(readiness);
       } catch (e: any) {
         setErr(e.message ?? "Failed to load races");
       }
@@ -35,12 +47,35 @@ export default function RacesPage() {
             <div>
               <div className="title">{r.name}</div>
               <div className="muted">{r.type} • {r.location} • {new Date(r.date).toLocaleDateString()}</div>
-              { user && user.role === "ADMIN" ? (
-                <Link to={`/races/${r.raceId}/start-list`}>Start List</Link>  
-              
-                ) : ( <div /> )
-              }
-              
+              {user && user.role === "ADMIN" && (
+                <div className="row" style={{ gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+                  <Link to={`/races/${r.raceId}/start-list`}>Start List (admin)</Link>
+                  {startListReady[r.raceId] && (
+                    <>
+                      <span className="row" style={{ gap: 4, alignItems: "center" }}>
+                        <Link to={`/public/races/${r.raceId}/start-list`}>Public Start List</Link>
+                        <button
+                          className="icon-only"
+                          onClick={() => navigator.clipboard.writeText(`${window.location.origin}/public/races/${r.raceId}/start-list`)}
+                          title="Copy link"
+                        >
+                          🔗
+                        </button>
+                      </span>
+                      <span className="row" style={{ gap: 6, alignItems: "center" }}>
+                        <Link to={`/public/races/${r.raceId}/start-list/teams`}>Start List by Team</Link>
+                        <button
+                          className="icon-only"
+                          onClick={() => navigator.clipboard.writeText(`${window.location.origin}/public/races/${r.raceId}/start-list/teams`)}
+                          title="Copy link"
+                        >
+                          🔗
+                        </button>
+                      </span>
+                    </>
+                  )}
+                </div>
+              )}
 
             </div>
             {user && teams && teams.length > 0 ? (

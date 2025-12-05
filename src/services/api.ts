@@ -2,7 +2,7 @@ import { Team, User, Racer, Gender, RacerClass, Race, RosterEntry, StartListEntr
 
 let users: User[] = [
   { id: "u1", name: "Geddy Admin", role: "ADMIN", teamIds: [] },
-  { id: "u2", name: "Coach Josh", role: "COACH", teamIds: ["t4"] },
+  { id: "u2", name: "Coach Josh", role: "COACH", teamIds: ["sandy"] },
   { id: "u3", name: "Brad", role: "ADMIN", teamIds: [] },
   { id: "u4", name: "Eastside Coach", role: "COACH", teamIds: ["t2", "t3", "t1"] },
 ];
