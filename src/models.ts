@@ -89,3 +89,15 @@ export interface RaceResultGroup {
   class: RacerClass | "Unknown";
   entries: RaceResultEntry[];
 }
+
+export interface TeamResult {
+  gender: Gender;
+  teamId: string;
+  teamName: string;
+  run1TotalSec: number | null;
+  run2TotalSec: number | null;
+  totalTimeSec: number | null;
+  run1Contribs: { bib: number; racerName: string; timeSec: number }[];
+  run2Contribs: { bib: number; racerName: string; timeSec: number }[];
+  points: number;
+}

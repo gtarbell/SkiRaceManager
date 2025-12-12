@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { Race, RaceResultGroup } from "../models";
+import { Race, RaceResultGroup, TeamResult } from "../models";
 import { api } from "../services/api";
 
 function fmtTime(sec?: number) {
@@ -20,6 +20,7 @@ export default function PublicResultsPage() {
   const { raceId } = useParams();
   const [groups, setGroups] = useState<RaceResultGroup[]>([]);
   const [race, setRace] = useState<Race | null>(null);
+  const [teamScores, setTeamScores] = useState<TeamResult[]>([]);
   const [err, setErr] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -33,6 +34,7 @@ export default function PublicResultsPage() {
         setRace(raceInfo ?? null);
         const res = await api.getResultsPublic(raceId);
         setGroups(res.groups ?? []);
+        setTeamScores(res.teamScores ?? []);
       } catch (e: any) {
         setErr(e.message || "Failed to load results");
       } finally {
@@ -45,6 +47,67 @@ export default function PublicResultsPage() {
   if (loading) return <section className="card">Loading results…</section>;
   if (err) return <section className="card error">{err}</section>;
   if (!groups.length) return <section className="card">No results posted yet.</section>;
+
+  const slug = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+  const toc: { id: string; label: string }[] = [
+    ...groups.map(g => ({ id: `group-${slug(g.gender)}-${slug(g.class)}`, label: `${g.gender} ${g.class}` })),
+    ...(teamScores.some(t => t.gender === "Female") ? [{ id: "team-female", label: "Female Varsity Teams" }] : []),
+    ...(teamScores.some(t => t.gender === "Male") ? [{ id: "team-male", label: "Male Varsity Teams" }] : []),
+  ];
+
+  const renderTeamScores = (gender: "Female" | "Male") => {
+    const teams = teamScores.filter(t => t.gender === gender);
+    if (!teams.length) return null;
+    const ranked = teams
+      .slice()
+      .sort((a, b) => {
+        const aT = a.totalTimeSec ?? Number.MAX_SAFE_INTEGER;
+        const bT = b.totalTimeSec ?? Number.MAX_SAFE_INTEGER;
+        return aT - bT || a.teamName.localeCompare(b.teamName);
+      })
+      .map((t, idx, arr) => {
+        if (idx === 0) return { ...t, place: 1 };
+        const prev = arr[idx - 1];
+        const place = (t.totalTimeSec ?? Number.MAX_SAFE_INTEGER) === (prev.totalTimeSec ?? Number.MAX_SAFE_INTEGER) ? (prev as any).place : idx + 1;
+        return { ...t, place };
+      });
+    const fmtContribs = (list: { bib: number; racerName: string; timeSec: number }[]) =>
+      list.map(c => `${c.bib} ${c.racerName} (${c.timeSec.toFixed(3)})`).join(", ");
+    return (
+      <div className="card" id={gender === "Female" ? "team-female" : "team-male"}>
+        <div className="title">{gender} Varsity Team Scores</div>
+        <div className="muted" style={{ marginBottom: 8 }}>Best three times per run; points scaled by team count.</div>
+        <table className="table" style={{ width: "100%", tableLayout: "fixed" }}>
+          <thead>
+            <tr>
+              <th style={{ width: 60 }}>Place</th>
+              <th style={{ width: 160 }}>Team</th>
+              <th style={{ width: 160 }}>Run 1 Total</th>
+              <th style={{ width: 220 }}>Run 1 Used</th>
+              <th style={{ width: 160 }}>Run 2 Total</th>
+              <th style={{ width: 220 }}>Run 2 Used</th>
+              <th style={{ width: 140 }}>Total Time</th>
+              <th style={{ width: 90 }}>Points</th>
+            </tr>
+          </thead>
+          <tbody>
+            {ranked.map(t => (
+              <tr key={t.teamId}>
+                <td>{t.place}</td>
+                <td>{t.teamName}</td>
+                <td>{t.run1TotalSec !== null ? t.run1TotalSec.toFixed(3) : "—"}</td>
+                <td className="small">{t.run1Contribs.length ? fmtContribs(t.run1Contribs) : "Need 3 finishers"}</td>
+                <td>{t.run2TotalSec !== null ? t.run2TotalSec.toFixed(3) : "—"}</td>
+                <td className="small">{t.run2Contribs.length ? fmtContribs(t.run2Contribs) : "Need 3 finishers"}</td>
+                <td>{t.totalTimeSec !== null ? t.totalTimeSec.toFixed(3) : "—"}</td>
+                <td>{t.points}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    );
+  };
 
   return (
     <section>
@@ -59,52 +122,76 @@ export default function PublicResultsPage() {
         </div>
         <Link to="/">Back</Link>
       </div>
-      {groups.map(group => (
-        <div className="card" key={`${group.gender}-${group.class}`}>
-          <div className="title">Standings • {group.gender} • {group.class}</div>
-          <div className="muted" style={{ marginBottom: 8 }}>Sorted by total points (Run 1 + Run 2)</div>
-          <table className="table" style={{ width: "100%", tableLayout: "fixed" }}>
-            <thead>
-              <tr>
-                <th style={{ width: 60 }}>Place</th>
-                <th style={{ width: 70 }}>Bib</th>
-                <th style={{ width: 220 }}>Name</th>
-                <th style={{ width: 140 }}>Team</th>
-                <th style={{ width: 150 }}>Gender / Class</th>
-                <th style={{ width: 160 }}>Run 1</th>
-                <th style={{ width: 160 }}>Run 2</th>
-                <th style={{ width: 110 }}>Total Points</th>
-              </tr>
-            </thead>
-            <tbody>
-              {group.entries.reduce<{ entry: any; place: number }[]>((acc, entry, idx) => {
-                if (idx === 0) return [{ entry, place: 1 }];
-                const prev = acc[acc.length - 1];
-                const place = entry.totalPoints === prev.entry.totalPoints ? prev.place : idx + 1;
-                acc.push({ entry, place });
-                return acc;
-              }, []).map(({ entry, place }) => (
-                <tr key={entry.bib}>
-                  <td>{place}</td>
-                  <td>{entry.bib}</td>
-                  <td>{entry.racerName}</td>
-                  <td>{entry.teamName}</td>
-                  <td>{entry.gender} • {entry.class}</td>
-                  <td>
-                    <div>{fmtTime(entry.run1TimeSec)}</div>
-                    <div className="muted">{statusLabel(entry.run1Status)} • {entry.run1Points} pts</div>
-                  </td>
-                  <td>
-                    <div>{fmtTime(entry.run2TimeSec)}</div>
-                    <div className="muted">{statusLabel(entry.run2Status)} • {entry.run2Points} pts</div>
-                  </td>
-                  <td>{entry.totalPoints}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      <div className="results-layout">
+        {toc.length > 0 && (
+          <aside className="toc">
+            <div className="toc-inner">
+              <div className="title" style={{ marginBottom: 8 }}>Jump to</div>
+              <div className="toc-links">
+                {toc.map(item => (
+                  <a key={item.id} href={`#${item.id}`} className="link-button secondary-link">
+                    {item.label}
+                  </a>
+                ))}
+              </div>
+            </div>
+          </aside>
+        )}
+        <div className="results-content">
+          {groups.map(group => (
+            <div className="card" key={`${group.gender}-${group.class}`} id={`group-${slug(group.gender)}-${slug(group.class)}`}>
+              <div className="title">Standings • {group.gender} • {group.class}</div>
+              <div className="muted" style={{ marginBottom: 8 }}>Sorted by total points (Run 1 + Run 2)</div>
+              <table className="table" style={{ width: "100%", tableLayout: "fixed" }}>
+                <thead>
+                  <tr>
+                    <th style={{ width: 60 }}>Place</th>
+                    <th style={{ width: 70 }}>Bib</th>
+                    <th style={{ width: 220 }}>Name</th>
+                    <th style={{ width: 140 }}>Team</th>
+                    <th style={{ width: 150 }}>Gender / Class</th>
+                    <th style={{ width: 160 }}>Run 1</th>
+                    <th style={{ width: 160 }}>Run 2</th>
+                    <th style={{ width: 110 }}>Total Points</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {group.entries.reduce<{ entry: any; place: number }[]>((acc, entry, idx) => {
+                    if (idx === 0) return [{ entry, place: 1 }];
+                    const prev = acc[acc.length - 1];
+                    const place = entry.totalPoints === prev.entry.totalPoints ? prev.place : idx + 1;
+                    acc.push({ entry, place });
+                    return acc;
+                  }, []).map(({ entry, place }) => (
+                    <tr key={entry.bib}>
+                      <td>{place}</td>
+                      <td>{entry.bib}</td>
+                      <td>{entry.racerName}</td>
+                      <td>{entry.teamName}</td>
+                      <td>{entry.gender} • {entry.class}</td>
+                      <td>
+                        <div>{fmtTime(entry.run1TimeSec)}</div>
+                        <div className="muted">{statusLabel(entry.run1Status)} • {entry.run1Points} pts</div>
+                      </td>
+                      <td>
+                        <div>{fmtTime(entry.run2TimeSec)}</div>
+                        <div className="muted">{statusLabel(entry.run2Status)} • {entry.run2Points} pts</div>
+                      </td>
+                      <td>{entry.totalPoints}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ))}
+          {teamScores.length > 0 && (
+            <>
+              {renderTeamScores("Female")}
+              {renderTeamScores("Male")}
+            </>
+          )}
         </div>
-      ))}
+      </div>
     </section>
   );
 }

@@ -101,6 +101,17 @@ export default function RacesPage() {
           </li>
         ))}
       </ul>
+      {user && user.role === "ADMIN" && (
+        <div className="card">
+          <div className="row" style={{ justifyContent: "space-between", alignItems: "center" }}>
+            <div>
+              <div className="title">Season Results</div>
+              <div className="muted">View season-long standings by gender/class.</div>
+            </div>
+            <Link to="/public/season-results">Open</Link>
+          </div>
+        </div>
+      )}
     </section>
   );
 }

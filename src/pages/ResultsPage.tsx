@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
-import { RaceResultEntry, RaceResultGroup } from "../models";
+import { RaceResultEntry, RaceResultGroup, TeamResult } from "../models";
 import { api } from "../services/api";
 
 function fmtTime(sec?: number) {
@@ -23,6 +23,7 @@ export default function ResultsPage() {
   const [entries, setEntries] = useState<RaceResultEntry[] | null>(null);
   const [groups, setGroups] = useState<RaceResultGroup[]>([]);
   const [issues, setIssues] = useState<string[]>([]);
+  const [teamScores, setTeamScores] = useState<TeamResult[]>([]);
   const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -33,6 +34,7 @@ export default function ResultsPage() {
         const res = await api.getResults(user, raceId);
         setEntries(res.entries);
         setGroups(res.groups ?? []);
+        setTeamScores(res.teamScores ?? []);
         setIssues(res.issues);
       } catch {
         setEntries([]);
@@ -53,12 +55,67 @@ export default function ResultsPage() {
       const res = await api.uploadResults(user, raceId, text);
       setEntries(res.entries);
       setGroups(res.groups ?? []);
+      setTeamScores(res.teamScores ?? []);
       setIssues(res.issues);
     } catch (error: any) {
       setErr(error.message || "Failed to upload results");
     } finally {
       setBusy(false);
     }
+  };
+
+  const renderTeamScores = (gender: "Female" | "Male") => {
+    const teams = teamScores.filter(t => t.gender === gender);
+    if (!teams.length) return null;
+    const ranked = teams
+      .slice()
+      .sort((a, b) => {
+        const aT = a.totalTimeSec ?? Number.MAX_SAFE_INTEGER;
+        const bT = b.totalTimeSec ?? Number.MAX_SAFE_INTEGER;
+        return aT - bT || a.teamName.localeCompare(b.teamName);
+      })
+      .map((t, idx, arr) => {
+        if (idx === 0) return { ...t, place: 1 };
+        const prev = arr[idx - 1];
+        const place = (t.totalTimeSec ?? Number.MAX_SAFE_INTEGER) === (prev.totalTimeSec ?? Number.MAX_SAFE_INTEGER) ? (prev as any).place : idx + 1;
+        return { ...t, place };
+      });
+    const fmtContribs = (list: { bib: number; racerName: string; timeSec: number }[]) =>
+      list.map(c => `${c.bib} ${c.racerName} (${c.timeSec.toFixed(3)})`).join(", ");
+    return (
+      <div className="card">
+        <div className="title">{gender} Varsity Team Scores</div>
+        <div className="muted" style={{ marginBottom: 8 }}>Best three times per run; points scaled by team count.</div>
+        <table className="table" style={{ width: "100%", tableLayout: "fixed" }}>
+          <thead>
+            <tr>
+              <th style={{ width: 60 }}>Place</th>
+              <th style={{ width: 160 }}>Team</th>
+              <th style={{ width: 160 }}>Run 1 Total</th>
+              <th style={{ width: 220 }}>Run 1 Used</th>
+              <th style={{ width: 160 }}>Run 2 Total</th>
+              <th style={{ width: 220 }}>Run 2 Used</th>
+              <th style={{ width: 140 }}>Total Time</th>
+              <th style={{ width: 90 }}>Points</th>
+            </tr>
+          </thead>
+          <tbody>
+            {ranked.map(t => (
+              <tr key={t.teamId}>
+                <td>{t.place}</td>
+                <td>{t.teamName}</td>
+                <td>{t.run1TotalSec !== null ? t.run1TotalSec.toFixed(3) : "—"}</td>
+                <td className="small">{t.run1Contribs.length ? fmtContribs(t.run1Contribs) : "Need 3 finishers"}</td>
+                <td>{t.run2TotalSec !== null ? t.run2TotalSec.toFixed(3) : "—"}</td>
+                <td className="small">{t.run2Contribs.length ? fmtContribs(t.run2Contribs) : "Need 3 finishers"}</td>
+                <td>{t.totalTimeSec !== null ? t.totalTimeSec.toFixed(3) : "—"}</td>
+                <td>{t.points}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    );
   };
 
   return (
@@ -135,6 +192,12 @@ export default function ResultsPage() {
           <div className="muted" style={{ marginBottom: 8 }}>Sorted by total points (Run 1 + Run 2)</div>
           <div className="muted">No grouping information returned.</div>
         </div>
+      )}
+      {teamScores.length > 0 && (
+        <>
+          {renderTeamScores("Female")}
+          {renderTeamScores("Male")}
+        </>
       )}
     </section>
   );
