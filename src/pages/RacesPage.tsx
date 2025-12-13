@@ -11,6 +11,7 @@ export default function RacesPage() {
   const [teams, setTeams] = useState<Team[] | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [startListReady, setStartListReady] = useState<Record<string, boolean>>({});
+  const [lockSaving, setLockSaving] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     (async () => {
@@ -35,6 +36,20 @@ export default function RacesPage() {
     })();
   }, [user]);
 
+  async function updateLock(race: Race, locked: boolean) {
+    if (!user) return;
+    setErr(null);
+    setLockSaving(s => ({ ...s, [race.raceId]: true }));
+    try {
+      const updated = await api.setRaceLock(user, race.raceId, locked);
+      setRaces(prev => prev ? prev.map(r => r.raceId === race.raceId ? { ...r, locked: updated.locked } : r) : prev);
+    } catch (e: any) {
+      setErr(e.message ?? "Failed to update lock");
+    } finally {
+      setLockSaving(s => ({ ...s, [race.raceId]: false }));
+    }
+  }
+
   if (err) return <section className="card error">{err}</section>;
   if (!races) return <section className="card">Loading…</section>;
 
@@ -47,6 +62,20 @@ export default function RacesPage() {
             <div>
               <div className="title">{r.name}</div>
               <div className="muted">{r.type} • {r.location} • {new Date(r.date).toLocaleDateString()}</div>
+              <div className="row" style={{ gap: 8, alignItems: "center", marginTop: 6 }}>
+                <span className={`badge ${r.locked ? "warn" : "ok"}`} title={r.locked ? "Roster locked" : "Roster open"}>
+                  {r.locked ? "Locked" : "Open"}
+                </span>
+                {user && user.role === "ADMIN" && (
+                  <button
+                    className="secondary"
+                    onClick={() => updateLock(r, !r.locked)}
+                    disabled={!!lockSaving[r.raceId]}
+                  >
+                    {lockSaving[r.raceId] ? "Saving…" : r.locked ? "Unlock roster" : "Lock roster"}
+                  </button>
+                )}
+              </div>
               {user && user.role === "ADMIN" && (
                 <div className="row" style={{ gap: 8, flexWrap: "wrap", alignItems: "center" }}>
                   <Link to={`/races/${r.raceId}/start-list`}>Start List (admin)</Link>
@@ -90,9 +119,17 @@ export default function RacesPage() {
 
             </div>
             {user && teams && teams.length > 0 ? (
-              <div className="row">
+              <div className="row" style={{ flexDirection: "column", alignItems: "flex-start", gap: 6 }}>
                 {teams.map(t => (
-                  <Link key={t.teamId} to={`/races/${r.raceId}/roster/${t.teamId}`} className="secondary">Edit {t.name} Roster</Link>
+                  <div key={t.teamId} className="row" style={{ alignItems: "center", gap: 6 }}>
+                    <Link
+                      to={`/races/${r.raceId}/roster/${t.teamId}`}
+                      className="secondary"
+                    >
+                      {r.locked ? `View ${t.name} Roster` : `Edit ${t.name} Roster`}
+                    </Link>
+                    {r.locked && <span className="badge warn" title="Rosters are locked for this race">Locked</span>}
+                  </div>
                 ))}
               </div>
             ) : (

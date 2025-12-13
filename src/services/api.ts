@@ -71,6 +71,10 @@ export const api = {
 
   async getRace(raceId: string): Promise<Race | undefined> { return req(`/races/${raceId}`); },
   async getRacePublic(raceId: string): Promise<Race | undefined> { return req(`/races/${raceId}`); },
+  async setRaceLock(user: User, raceId: string, locked: boolean): Promise<Race> {
+    if (user.role !== "ADMIN") throw new Error("Only admins can lock races.");
+    return req(`/races/${raceId}`, { method: "PATCH", body: JSON.stringify({ locked }) });
+  },
   async getTeamsForUser(user: User): Promise<Team[]> {
     if (user.role === "ADMIN") 
       return req("/teams/");

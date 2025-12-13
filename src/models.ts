@@ -36,6 +36,7 @@ export interface Race {
   date: string; // ISO
   type: RaceType;
   leagueId?: string | null;
+  locked?: boolean;
 }
 
 export interface RosterEntry {

@@ -86,8 +86,12 @@ export default function RosterEditorPage() {
     return { byClass, counts };
   }, [classes, roster, genderTab]);
 
+  const editingLocked = !!race?.locked;
+  const lockMessage = "Roster is locked for this race. Unlock it from the Races page to make changes.";
+
   async function add(racer: Racer, desired?: RacerClass) {
-    if (!user) return;
+    if (!user || !race) return;
+    if (editingLocked) { setErr(lockMessage); setShowErr(true); return; }
     setErr(null);
     try {
       const updated = await api.addToRoster(user, raceId!, teamId!, racer, desired);
@@ -96,7 +100,8 @@ export default function RosterEditorPage() {
     } catch (e: any) { setErr(e.message ?? "Failed to add"); setShowErr(true);}
   }
   async function remove(racerId: string) {
-    if (!user) return;
+    if (!user || !race) return;
+    if (editingLocked) { setErr(lockMessage); setShowErr(true); return; }
     setErr(null);
     try {
       const updated = await api.removeFromRoster(user, raceId!, teamId!, racerId);
@@ -104,7 +109,8 @@ export default function RosterEditorPage() {
     } catch (e: any) { setErr(e.message ?? "Failed to remove"); setShowErr(true);}
   }
   async function copyFromOtherRace() {
-    if (!user) return;
+    if (!user || !race) return;
+    if (editingLocked) { setErr(lockMessage); setShowErr(true); return; }
     if (!copyFromRaceId) return;
     if (roster.length > 0) {
       const ok = window.confirm("Copying will discard current roster entries for this race. Continue?");
@@ -122,7 +128,8 @@ export default function RosterEditorPage() {
     }
   }
   async function changeClass(racerId: string, newClass: RacerClass) {
-    if (!user) return;
+    if (!user || !race) return;
+    if (editingLocked) { setErr(lockMessage); setShowErr(true); return; }
     setErr(null);
     try {
       await api.updateEntryClass(user, raceId!, teamId!, racerId, newClass);
@@ -131,7 +138,8 @@ export default function RosterEditorPage() {
     } catch (e: any) { setErr(e.message ?? "Failed to update class"); setShowErr(true);}
   }
   async function move(racerId: string, dir: "up" | "down") {
-    if (!user) return;
+    if (!user || !race) return;
+    if (editingLocked) { setErr(lockMessage); setShowErr(true); return; }
     setErr(null);
     try {
       await api.moveEntry(user, raceId!, teamId!, racerId, dir);
@@ -149,6 +157,12 @@ export default function RosterEditorPage() {
         <Link to="/races" className="secondary">Back to Races</Link>
       </div>
       <p className="muted">{race.type} • {race.location} • {new Date(race.date).toLocaleDateString()}</p>
+      {race.locked && (
+        <div className="card" style={{ marginBottom: 12 }}>
+          <div className="title" style={{ marginBottom: 4 }}>Roster locked</div>
+          <div className="muted small">Unlock this race from the Races page to edit entries.</div>
+        </div>
+      )}
 
        <div className="tabs">
         {genders.map(g => (
@@ -179,8 +193,14 @@ export default function RosterEditorPage() {
     </div>
     <button
       onClick={copyFromOtherRace}
-      disabled={!copyFromRaceId}
-      title={!copyFromRaceId ? "Select a source race first" : "Copy roster"}
+      disabled={!copyFromRaceId || editingLocked}
+      title={
+        !copyFromRaceId
+          ? "Select a source race first"
+          : editingLocked
+            ? lockMessage
+            : "Copy roster"
+      }
     >
       Copy Roster
     </button>
@@ -196,7 +216,14 @@ export default function RosterEditorPage() {
             <ul className="list">
               {eligByGender[genderTab].map(r => {
                 const dnsButton = (
-                  <button className="secondary" onClick={() => add(r, "DNS - Did Not Start")}>Add DNS</button>
+                  <button
+                    className="secondary"
+                    onClick={() => add(r, "DNS - Did Not Start")}
+                    disabled={editingLocked}
+                    title={editingLocked ? lockMessage : undefined}
+                  >
+                    Add DNS
+                  </button>
                 );
                 if (r.class === "Provisional") {
                   return (
@@ -206,7 +233,13 @@ export default function RosterEditorPage() {
                         <div className="muted small">{r.gender} • Baseline {r.class}</div>
                       </div>
                       <div className="row">
-                        <button onClick={() => add(r, "Provisional")}>Add Provisional</button>
+                        <button
+                          onClick={() => add(r, "Provisional")}
+                          disabled={editingLocked}
+                          title={editingLocked ? lockMessage : undefined}
+                        >
+                          Add Provisional
+                        </button>
                         {dnsButton}
                       </div>
                     </li>
@@ -220,6 +253,8 @@ export default function RosterEditorPage() {
                   <button
                     className={isPrimary ? undefined : "secondary"}
                     onClick={() => add(r, desired)}
+                    disabled={editingLocked}
+                    title={editingLocked ? lockMessage : undefined}
                   >
                     {label}
                   </button>
@@ -287,6 +322,8 @@ export default function RosterEditorPage() {
                           <select
                             value={isDns ? "DNS - Did Not Start" : e.class}
                             onChange={ev => changeClass(e.racerId, ev.target.value as RacerClass)}
+                            disabled={editingLocked}
+                            title={editingLocked ? lockMessage : undefined}
                           >
                               {options.map(opt => (
                                 <option key={opt} value={opt}>{opt}</option>
@@ -296,12 +333,29 @@ export default function RosterEditorPage() {
                           <td className="right">
                             <div className="row" style={{justifyContent:"flex-end"}}>
                               {showUp && (
-                                <button className="secondary" onClick={() => move(e.racerId, "up")}>↑</button>
+                                <button
+                                  className="secondary"
+                                  onClick={() => move(e.racerId, "up")}
+                                  disabled={editingLocked}
+                                  title={editingLocked ? lockMessage : undefined}
+                                >↑</button>
                               )}
                               {showDown && (
-                                <button className="secondary" onClick={() => move(e.racerId, "down")}>↓</button>
+                                <button
+                                  className="secondary"
+                                  onClick={() => move(e.racerId, "down")}
+                                  disabled={editingLocked}
+                                  title={editingLocked ? lockMessage : undefined}
+                                >↓</button>
                               )}
-                              <button className="danger" onClick={() => remove(e.racerId)}>Remove</button>
+                              <button
+                                className="danger"
+                                onClick={() => remove(e.racerId)}
+                                disabled={editingLocked}
+                                title={editingLocked ? lockMessage : undefined}
+                              >
+                                Remove
+                              </button>
                             </div>
                           </td>
                         </tr>
@@ -317,7 +371,7 @@ export default function RosterEditorPage() {
       </div>
       <Modal
         open={showErr}
-        title="Roster Limit"
+        title="Roster Notice"
         onClose={() => setShowErr(false)}
         >
         <p style={{margin:0}}>{err}</p>
