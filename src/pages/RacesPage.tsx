@@ -11,7 +11,7 @@ export default function RacesPage() {
   const [teams, setTeams] = useState<Team[] | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [startListReady, setStartListReady] = useState<Record<string, boolean>>({});
-  const [lockSaving, setLockSaving] = useState<Record<string, boolean>>({});
+  const [raceSaving, setRaceSaving] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     (async () => {
@@ -36,17 +36,17 @@ export default function RacesPage() {
     })();
   }, [user]);
 
-  async function updateLock(race: Race, locked: boolean) {
+  async function updateRace(race: Race, patch: Partial<Pick<Race, "locked" | "independent">>) {
     if (!user) return;
     setErr(null);
-    setLockSaving(s => ({ ...s, [race.raceId]: true }));
+    setRaceSaving(s => ({ ...s, [race.raceId]: true }));
     try {
-      const updated = await api.setRaceLock(user, race.raceId, locked);
-      setRaces(prev => prev ? prev.map(r => r.raceId === race.raceId ? { ...r, locked: updated.locked } : r) : prev);
+      const updated = await api.updateRace(user, race.raceId, patch);
+      setRaces(prev => prev ? prev.map(r => r.raceId === race.raceId ? { ...r, ...updated } : r) : prev);
     } catch (e: any) {
-      setErr(e.message ?? "Failed to update lock");
+      setErr(e.message ?? "Failed to update race");
     } finally {
-      setLockSaving(s => ({ ...s, [race.raceId]: false }));
+      setRaceSaving(s => ({ ...s, [race.raceId]: false }));
     }
   }
 
@@ -62,6 +62,9 @@ export default function RacesPage() {
             <div>
               <div className="title">{r.name}</div>
               <div className="muted">{r.type} • {r.location} • {new Date(r.date).toLocaleDateString()}</div>
+              {r.independent && (
+                <div className="muted small">Independent race — excluded from season standings.</div>
+              )}
               <div className="row" style={{ gap: 8, alignItems: "center", marginTop: 6 }}>
                 <span className={`badge ${r.locked ? "warn" : "ok"}`} title={r.locked ? "Roster locked" : "Roster open"}>
                   {r.locked ? "Locked" : "Open"}
@@ -69,10 +72,20 @@ export default function RacesPage() {
                 {user && user.role === "ADMIN" && (
                   <button
                     className="secondary"
-                    onClick={() => updateLock(r, !r.locked)}
-                    disabled={!!lockSaving[r.raceId]}
+                    onClick={() => updateRace(r, { locked: !r.locked })}
+                    disabled={!!raceSaving[r.raceId]}
                   >
-                    {lockSaving[r.raceId] ? "Saving…" : r.locked ? "Unlock roster" : "Lock roster"}
+                    {raceSaving[r.raceId] ? "Saving…" : r.locked ? "Unlock roster" : "Lock roster"}
+                  </button>
+                )}
+                {user && user.role === "ADMIN" && (
+                  <button
+                    className="secondary"
+                    onClick={() => updateRace(r, { independent: !r.independent })}
+                    disabled={!!raceSaving[r.raceId]}
+                    title="Independent races do not count toward season standings."
+                  >
+                    {raceSaving[r.raceId] ? "Saving…" : r.independent ? "Mark as counting race" : "Mark independent"}
                   </button>
                 )}
               </div>

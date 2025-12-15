@@ -57,7 +57,10 @@ export default function SeasonResultsPage() {
       setLoading(true);
       try {
         const raceList = await api.listRaces();
-        const sortedRaces = raceList.slice().sort((a, b) => a.date.localeCompare(b.date));
+        const sortedRaces = raceList
+          .filter(r => !r.independent)
+          .slice()
+          .sort((a, b) => a.date.localeCompare(b.date));
         setRaces(sortedRaces);
         const results = await Promise.all(sortedRaces.map(async (r): Promise<[Race, RaceResultResponse]> => {
           try {
@@ -160,6 +163,7 @@ export default function SeasonResultsPage() {
         <h1>Season Results</h1>
         <Link to="/">Back</Link>
       </div>
+      <p className="muted small">Independent races are excluded from season standings.</p>
       {groupOrder.map(g => renderGroup(g.gender, g.class)).filter(Boolean)}
     </section>
   );

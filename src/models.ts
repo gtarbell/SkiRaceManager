@@ -37,6 +37,7 @@ export interface Race {
   type: RaceType;
   leagueId?: string | null;
   locked?: boolean;
+  independent?: boolean;
 }
 
 export interface RosterEntry {
