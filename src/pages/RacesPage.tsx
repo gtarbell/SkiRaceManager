@@ -68,7 +68,7 @@ export default function RacesPage() {
                 <div className="muted small">Independent race — excluded from season standings.</div>
               )}
               <div className="row" style={{ gap: 8, alignItems: "center", marginTop: 6 }}>
-               
+
                 {user && user.role === "ADMIN" && (
                   <button
                     className="secondary"
@@ -89,46 +89,34 @@ export default function RacesPage() {
                   </button>
                 )}
               </div>
-              {user && user.role === "ADMIN" && (
+
                 <div className="row" style={{ gap: 8, flexWrap: "wrap", alignItems: "center" }}>
-                  <Link to={`/races/${r.raceId}/start-list`}>Start List (admin)</Link>
-                  <Link to={`/races/${r.raceId}/results`}>Upload Results</Link>
+                  {user && user.role === "ADMIN" && (
+                    <div>
+                      <Link to={`/races/${r.raceId}/start-list`}>Start List (admin)</Link>
+                      <Link to={`/races/${r.raceId}/results`}>Upload Results</Link>
+                    </div>
+                   )}
                   {startListReady[r.raceId] && (
                     <>
                       <span className="row" style={{ gap: 4, alignItems: "center" }}>
-                        <Link to={`/public/races/${r.raceId}/start-list`}>Public Start List</Link>
-                        <button
-                          className="icon-only"
-                          onClick={() => navigator.clipboard.writeText(`${window.location.origin}/public/races/${r.raceId}/start-list`)}
-                          title="Copy link"
-                        >
-                          🔗
-                        </button>
+                        <Link to={`/public/races/${r.raceId}/start-list`}>Start List</Link>
+                        
                       </span>
+                      <span> • </span>
                       <span className="row" style={{ gap: 6, alignItems: "center" }}>
                         <Link to={`/public/races/${r.raceId}/start-list/teams`}>Start List by Team</Link>
-                        <button
-                          className="icon-only"
-                          onClick={() => navigator.clipboard.writeText(`${window.location.origin}/public/races/${r.raceId}/start-list/teams`)}
-                          title="Copy link"
-                        >
-                          🔗
-                        </button>
+                        
                       </span>
+                      <span> • </span>
                       <span className="row" style={{ gap: 6, alignItems: "center" }}>
-                        <Link to={`/public/races/${r.raceId}/results`}>Public Results</Link>
-                        <button
-                          className="icon-only"
-                          onClick={() => navigator.clipboard.writeText(`${window.location.origin}/public/races/${r.raceId}/results`)}
-                          title="Copy link"
-                        >
-                          🔗
-                        </button>
+                        <Link to={`/public/races/${r.raceId}/results`}>Race Results</Link>
+                        
                       </span>
                     </>
-                  )}
+                 )}
                 </div>
-              )}
+
 
             </div>
             {user && teams && teams.length > 0 ? (
