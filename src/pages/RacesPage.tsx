@@ -60,15 +60,15 @@ export default function RacesPage() {
         {races.map(r => (
           <li key={r.raceId} className="list-item">
             <div>
-              <div className="title">{r.name}</div>
+              <div className="title">{r.name}  <span className={`badge small ${r.locked ? "warn" : "ok"}`} title={r.locked ? "Roster locked" : "Roster open"}>
+                  {/* {r.locked ? "Locked" : "Open"} */}
+                </span></div>
               <div className="muted">{r.type} • {r.location} • {new Date(r.date).toLocaleDateString()}</div>
               {r.independent && (
                 <div className="muted small">Independent race — excluded from season standings.</div>
               )}
               <div className="row" style={{ gap: 8, alignItems: "center", marginTop: 6 }}>
-                <span className={`badge ${r.locked ? "warn" : "ok"}`} title={r.locked ? "Roster locked" : "Roster open"}>
-                  {r.locked ? "Locked" : "Open"}
-                </span>
+               
                 {user && user.role === "ADMIN" && (
                   <button
                     className="secondary"
@@ -141,7 +141,7 @@ export default function RacesPage() {
                     >
                       {r.locked ? `View ${t.name} Roster` : `Edit ${t.name} Roster`}
                     </Link>
-                    {r.locked && <span className="badge warn" title="Rosters are locked for this race">Locked</span>}
+                    {r.locked && <span className="badge warn" title="Rosters are locked for this race"></span>}
                   </div>
                 ))}
               </div>

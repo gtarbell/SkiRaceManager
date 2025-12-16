@@ -223,12 +223,18 @@ a.link-button:hover {
   box-shadow: 0 2px 6px rgba(0,0,0,.25);
   cursor: default;
 }
+.badge.small {
+  width: 12px;
+  height: 12px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
 .badge.ok {
   background: #19c17e; /* green */
   color: #06261a;
 }
 .badge.warn {
-  background: #ffd166; /* amber */
+  background: #F00; /* amber */
   color: #4a3800;
 }
 

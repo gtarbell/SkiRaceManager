@@ -40,7 +40,7 @@ export default function HomePage() {
   // Determine next upcoming race (>= today). If none, fall back to the last race (or first available).
   const nextRace = useMemo(() => {
     if (!races || races.length === 0) return null;
-    const today = new Date();
+    const today = new Date(2026, 0, 5); // for testing);
     const upcoming = races
       .map(r => ({ r, dt: parseISO(r.date) }))
       .filter(x => x.dt >= new Date(today.getFullYear(), today.getMonth(), today.getDate()))
