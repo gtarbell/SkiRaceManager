@@ -113,10 +113,13 @@ export default function PublicResultsPage() {
     <section>
       <div className="row" style={{ justifyContent: "space-between", alignItems: "center" }}>
         <div>
-          <h1>Race Results</h1>
+          
           {race && (
-            <div className="muted">
-              {race.name} • {race.location} • {new Date(race.date).toLocaleDateString()} • {race.type}
+            <div>
+              <h1>Race Results  • {race.name}</h1>
+              <div className="muted" style={{ paddingBottom: "15px" }}>
+                {race.location} • {new Date(race.date).toLocaleDateString()} • {race.type}
+              </div>
             </div>
           )}
         </div>
@@ -140,8 +143,8 @@ export default function PublicResultsPage() {
         <div className="results-content">
           {groups.map(group => (
             <div className="card" key={`${group.gender}-${group.class}`} id={`group-${slug(group.gender)}-${slug(group.class)}`}>
-              <div className="title">Standings • {group.gender} • {group.class}</div>
-              <div className="muted" style={{ marginBottom: 8 }}>Sorted by total points (Run 1 + Run 2)</div>
+              <div className="title" style={{ marginBottom: 8 }}>Standings • {group.gender} • {group.class}</div>
+              {/* <div className="muted" style={{ marginBottom: 8 }}>Sorted by total points (Run 1 + Run 2)</div> */}
               <table className="table" style={{ width: "100%", tableLayout: "fixed" }}>
                 <thead>
                   <tr>
@@ -150,8 +153,8 @@ export default function PublicResultsPage() {
                     <th style={{ width: 220 }}>Name</th>
                     <th style={{ width: 140 }}>Team</th>
                     <th style={{ width: 150 }}>Gender / Class</th>
-                    <th style={{ width: 160 }}>Run 1</th>
-                    <th style={{ width: 160 }}>Run 2</th>
+                    <th style={{ width: 160 }}>Run 1 (Seconds)</th>
+                    <th style={{ width: 160 }}>Run 2 (Seconds)</th>
                     <th style={{ width: 110 }}>Total Points</th>
                   </tr>
                 </thead>

@@ -164,21 +164,16 @@ export default function RosterEditorPage() {
         </div>
       )}
 
-       <div className="tabs">
-        {genders.map(g => (
-          <button key={g} className={g===genderTab ? "" : "secondary"} onClick={()=>setGenderTab(g)}>{g}</button>
-        ))}
-      </div>
-      <div className="card" style={{marginBottom:16}}>
+      
+      <div className="card" style={{marginBottom:16, width:400}}>
   <div className="row" style={{justifyContent:"space-between", alignItems:"end", gap:12}}>
     <div>
-      <div className="muted small">Copy roster from another race</div>
+      <div className="muted small" style={{paddingBottom: 8}}>Copy roster from another race</div>
       <label>
-        <span className="muted small">Source race</span>
         <select
           value={copyFromRaceId}
           onChange={e => setCopyFromRaceId(e.target.value)}
-          style={{ marginLeft: 8 }}
+          style={{ marginLeft: 8 , paddingBottom: 8}}
         >
           <option value="" disabled>
             {allRaces.length ? "Select race…" : "No races available"}
@@ -190,8 +185,9 @@ export default function RosterEditorPage() {
           ))}
         </select>
       </label>
-    </div>
+    <div style={{paddingTop:8}}>
     <button
+      style={{ marginLeft: 8}}
       onClick={copyFromOtherRace}
       disabled={!copyFromRaceId || editingLocked}
       title={
@@ -203,10 +199,16 @@ export default function RosterEditorPage() {
       }
     >
       Copy Roster
-    </button>
+      </button>
+      </div>
+    </div>
   </div>
 </div>
-
+ <div className="tabs" style={{marginTop:25, paddingTop:10, borderTop: "thick double #32a1ce"}}>
+        {genders.map(g => (
+          <button key={g} className={g===genderTab ? "" : "secondary"} onClick={()=>setGenderTab(g)}>{g}</button>
+        ))}
+      </div>
 
       <div className="grid">
         {/* Eligible pool */}

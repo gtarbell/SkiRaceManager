@@ -60,7 +60,7 @@ export const api = {
 
   async loginByName(name: string): Promise<User> {
     const user = users.find(u => u.name.toLowerCase() === name.toLowerCase());
-    if (!user) throw new Error("User not found. Try 'Alice Admin', 'Carl Coach', or 'Casey Coach'.");
+    if (!user) throw new Error("User not found. Reach out to Geddy if you need assistance");
     return structuredClone(user);
   },
 

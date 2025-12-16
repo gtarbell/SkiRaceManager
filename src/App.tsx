@@ -14,7 +14,7 @@ function TopBar() {
 
   return (
     <header className="topbar">
-      <div className="brand">Race Manager</div>
+      <div className="brand">Race Manager - Mt Hood League</div>
       <nav className="nav">
         {user && (
           <>
@@ -37,7 +37,7 @@ export default function App() {
       <main className="container">
         <Outlet />
       </main>
-      <footer className="footer">© {new Date().getFullYear()} Geddy Tarbell</footer>
+      <footer className="footer">© {new Date().getFullYear()} Cascade Timing</footer>
     </AuthProvider>
   );
 }
