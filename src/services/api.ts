@@ -4,7 +4,7 @@ let users: User[] = [
   { id: "u1", name: "Geddy Admin", role: "ADMIN", teamIds: [] },
   { id: "u2", name: "Coach Josh", role: "COACH", teamIds: ["sandy"] },
   { id: "u3", name: "Brad", role: "ADMIN", teamIds: [] },
-  { id: "u4", name: "Eastside Coach", role: "COACH", teamIds: ["t2", "t3", "t1"] },
+  { id: "u4", name: "Barlow Coach", role: "COACH", teamIds: ["barlow", "reynolds"] },
 ];
 
 const API = import.meta.env.VITE_API_BASE_URL; // set in Amplify/Env

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../services/api";
 import { Race, RaceResultGroup, RaceResultEntry } from "../models";
@@ -27,6 +27,7 @@ const groupOrder = [
 ];
 
 const normalizeClass = (cls: string) => (cls === "Varsity Alternate" ? "Varsity" : cls);
+const slug = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, "-");
 
 function buildPlaceMap(groups: RaceResultGroup[]) {
   const map = new Map<string, PerRaceStat>();
@@ -50,6 +51,7 @@ export default function SeasonResultsPage() {
   const [seasonRows, setSeasonRows] = useState<SeasonRow[]>([]);
   const [err, setErr] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [activeSection, setActiveSection] = useState<string | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -109,6 +111,64 @@ export default function SeasonResultsPage() {
     })();
   }, []);
 
+  const hasRows = (gender: string, cls: string) =>
+    seasonRows.some(r => r.gender === gender && normalizeClass(r.class) === cls);
+
+  const groupsWithRows = useMemo(
+    () => groupOrder.filter(g => hasRows(g.gender, g.class)),
+    [seasonRows]
+  );
+
+  const toc = useMemo(
+    () => groupsWithRows.map(g => ({
+      id: `season-${slug(g.gender)}-${slug(g.class)}`,
+      label: `${g.gender} ${g.class}`,
+    })),
+    [groupsWithRows]
+  );
+
+  useEffect(() => {
+    if (!toc.length) {
+      setActiveSection(null);
+      return;
+    }
+
+    const sections = toc
+      .map(item => document.getElementById(item.id))
+      .filter((el): el is HTMLElement => !!el);
+
+    const offset = 120;
+    let ticking = false;
+
+    const syncActive = () => {
+      ticking = false;
+      if (!sections.length) return;
+      let current: string | null = sections[0]?.id ?? null;
+      for (const el of sections) {
+        const top = el.getBoundingClientRect().top;
+        if (top - offset <= 0) {
+          current = el.id;
+        } else {
+          break;
+        }
+      }
+      setActiveSection(current);
+    };
+
+    const onScroll = () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(syncActive);
+    };
+
+    syncActive();
+    window.addEventListener("scroll", onScroll, { passive: true });
+
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+    };
+  }, [toc]);
+
   if (loading) return <section className="card">Loading season results…</section>;
   if (err) return <section className="card error">{err}</section>;
 
@@ -118,7 +178,7 @@ export default function SeasonResultsPage() {
       .sort((a, b) => b.totalPoints - a.totalPoints || a.name.localeCompare(b.name));
     if (!rows.length) return null;
     return (
-      <div className="card" key={`${gender}-${cls}`} id={`season-${gender}-${cls}`}>
+      <div className="card" key={`${gender}-${cls}`} id={`season-${slug(gender)}-${slug(cls)}`}>
         <div className="title">Season Standings • {gender} • {cls}</div>
         <div className="scroll-x">
           <table className="table" style={{ minWidth: 700 }}>
@@ -164,7 +224,31 @@ export default function SeasonResultsPage() {
         <Link to="/">Back</Link>
       </div>
       <p className="muted small">Independent races are excluded from season standings.</p>
-      {groupOrder.map(g => renderGroup(g.gender, g.class)).filter(Boolean)}
+      {toc.length > 0 ? (
+        <div className="results-layout">
+          <aside className="toc">
+            <div className="toc-inner">
+              <div className="title" style={{ marginBottom: 8 }}>Jump to</div>
+              <div className="toc-links">
+                {toc.map(item => (
+                  <a
+                    key={item.id}
+                    href={`#${item.id}`}
+                    className={`link-button secondary-link${activeSection === item.id ? " is-active" : ""}`}
+                  >
+                    {item.label}
+                  </a>
+                ))}
+              </div>
+            </div>
+          </aside>
+          <div className="results-content">
+            {groupOrder.map(g => renderGroup(g.gender, g.class)).filter(Boolean)}
+          </div>
+        </div>
+      ) : (
+        <section className="card">No season results posted yet.</section>
+      )}
     </section>
   );
 }
