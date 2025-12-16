@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { Race, RaceResultGroup, TeamResult } from "../models";
 import { api } from "../services/api";
@@ -16,6 +16,8 @@ function statusLabel(status: number) {
   return "—";
 }
 
+const slug = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+
 export default function PublicResultsPage() {
   const { raceId } = useParams();
   const [groups, setGroups] = useState<RaceResultGroup[]>([]);
@@ -23,6 +25,7 @@ export default function PublicResultsPage() {
   const [teamScores, setTeamScores] = useState<TeamResult[]>([]);
   const [err, setErr] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [activeSection, setActiveSection] = useState<string | null>(null);
 
   useEffect(() => {
     if (!raceId) return;
@@ -43,17 +46,58 @@ export default function PublicResultsPage() {
     })();
   }, [raceId]);
 
+  const toc: { id: string; label: string }[] = useMemo(() => ([
+    ...groups.map(g => ({ id: `group-${slug(g.gender)}-${slug(g.class)}`, label: `${g.gender} ${g.class}` })),
+    ...(teamScores.some(t => t.gender === "Female") ? [{ id: "team-female", label: "Female Varsity Teams" }] : []),
+    ...(teamScores.some(t => t.gender === "Male") ? [{ id: "team-male", label: "Male Varsity Teams" }] : []),
+  ]), [groups, teamScores]);
+
+  useEffect(() => {
+    if (!toc.length) {
+      setActiveSection(null);
+      return;
+    }
+
+    const sections = toc
+      .map(item => document.getElementById(item.id))
+      .filter((el): el is HTMLElement => !!el);
+
+    const offset = 120; // account for sticky header space
+    let ticking = false;
+
+    const syncActive = () => {
+      ticking = false;
+      if (!sections.length) return;
+      let current: string | null = sections[0]?.id ?? null;
+      for (const el of sections) {
+        const top = el.getBoundingClientRect().top;
+        if (top - offset <= 0) {
+          current = el.id;
+        } else {
+          break;
+        }
+      }
+      setActiveSection(current);
+    };
+
+    const onScroll = () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(syncActive);
+    };
+
+    syncActive();
+    window.addEventListener("scroll", onScroll, { passive: true });
+
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+    };
+  }, [toc]);
+
   if (!raceId) return <section className="card error">Race not specified.</section>;
   if (loading) return <section className="card">Loading results…</section>;
   if (err) return <section className="card error">{err}</section>;
   if (!groups.length) return <section className="card">No results posted yet.</section>;
-
-  const slug = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, "-");
-  const toc: { id: string; label: string }[] = [
-    ...groups.map(g => ({ id: `group-${slug(g.gender)}-${slug(g.class)}`, label: `${g.gender} ${g.class}` })),
-    ...(teamScores.some(t => t.gender === "Female") ? [{ id: "team-female", label: "Female Varsity Teams" }] : []),
-    ...(teamScores.some(t => t.gender === "Male") ? [{ id: "team-male", label: "Male Varsity Teams" }] : []),
-  ];
 
   const renderTeamScores = (gender: "Female" | "Male") => {
     const teams = teamScores.filter(t => t.gender === gender);
@@ -132,7 +176,11 @@ export default function PublicResultsPage() {
               <div className="title" style={{ marginBottom: 8 }}>Jump to</div>
               <div className="toc-links">
                 {toc.map(item => (
-                  <a key={item.id} href={`#${item.id}`} className="link-button secondary-link">
+                  <a
+                    key={item.id}
+                    href={`#${item.id}`}
+                    className={`link-button secondary-link${activeSection === item.id ? " is-active" : ""}`}
+                  >
                     {item.label}
                   </a>
                 ))}
