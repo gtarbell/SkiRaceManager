@@ -103,7 +103,7 @@ function buildPlaceMap(groups: RaceResultGroup[]) {
 }
 
 function buildTeamPlaceMap(teamScores: TeamResult[]) {
-  const map = new Map<string, PerRaceStat>();
+  const map = new Map<string, TeamPerRaceStat>();
   const genders: ("Female" | "Male")[] = ["Female", "Male"];
   const big = Number.MAX_SAFE_INTEGER;
   for (const gender of genders) {
@@ -122,7 +122,11 @@ function buildTeamPlaceMap(teamScores: TeamResult[]) {
       acc.push({ entry, place });
       return acc;
     }, []).forEach(({ entry, place }) => {
-      map.set(`${entry.gender}|${entry.teamId}`, { points: entry.points, place });
+     map.set(`${entry.gender}|${entry.teamId}`, {
+        points: entry.points,
+        place,
+        totalTimeSec: entry.totalTimeSec ?? null,
+      });
     });
   }
   return map;
