@@ -45,6 +45,19 @@ export default function LoginPage() {
             <button type="submit">Continue</button>
           </form>
         </div>
+        <div className="card login-help">
+          <p className="muted small">
+            First Time or need some help? Watch this quick tutorial video to get started.
+          </p>
+          <div className="video-embed">
+            <iframe
+              src="https://www.youtube.com/embed/2xTVbLrAyk4"
+              title="Quick tutorial"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            ></iframe>
+          </div>
+        </div>
       </div>
     </section>
   );

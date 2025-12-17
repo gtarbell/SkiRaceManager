@@ -112,10 +112,15 @@ export default function RacesPage() {
                       <span className="row" style={{ gap: 6, alignItems: "center" }}>
                         <Link to={`/public/races/${r.raceId}/results`}>Race Results</Link>
                       </span>
-                      <span> • </span>
-                      <span className="row" style={{ gap: 6, alignItems: "center" }}>
-                        <Link to={`/public/season-results`}>Season Results</Link>
-                      </span>
+                      {!r.independent && (
+                      <>
+                        <span> • </span>
+                        <span className="row" style={{ gap: 6, alignItems: "center" }}>
+                          <Link to={`/public/season-results`}>Season Results</Link>
+                        </span>
+                      </>
+                      )}
+                      
                     </>
                  )}
                 </div>
