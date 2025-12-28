@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Outlet, Link, useNavigate, useLocation } from "react-router-dom";
 import { AuthProvider, useAuth } from "./auth/AuthContext";
 
@@ -31,6 +32,19 @@ function TopBar() {
 }
 
 export default function App() {
+  const location = useLocation();
+
+  useEffect(() => {
+    const gtag = (window as typeof window & { gtag?: (...args: unknown[]) => void }).gtag;
+    if (!gtag) return;
+
+    gtag("event", "page_view", {
+      page_path: location.pathname + location.search,
+      page_location: window.location.href,
+      page_title: document.title,
+    });
+  }, [location]);
+
   return (
     <AuthProvider>
       <TopBar />
