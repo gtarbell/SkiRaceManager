@@ -21,6 +21,7 @@ export default function RosterEditorPage() {
   const [showErr, setShowErr] = useState(false);
   const [allRaces, setAllRaces] = useState<Race[]>([]);
   const [copyFromRaceId, setCopyFromRaceId] = useState<string>("");
+  const [eligibleClassFilter, setEligibleClassFilter] = useState<RacerClass | "All">("All");
 
   useEffect(() => {
     (async () => {
@@ -56,12 +57,15 @@ export default function RosterEditorPage() {
 
   const eligByGender = useMemo(() => {
     const setSelected = new Set(roster.map(r => r.racerId));
+    const classFilter = eligibleClassFilter;
     return genders.reduce<Record<Gender, Racer[]>>((acc, g) => {
-      acc[g] = eligible.filter(r => r.gender === g && !setSelected.has(r.racerId))
-                       .sort((a,b)=>a.name.localeCompare(b.name));
+      acc[g] = eligible
+        .filter(r => r.gender === g && !setSelected.has(r.racerId))
+        .filter(r => classFilter === "All" ? true : r.class === classFilter)
+        .sort((a,b)=>a.name.localeCompare(b.name));
       return acc;
     }, {} as any);
-  }, [genders, eligible, roster]);
+  }, [genders, eligible, roster, eligibleClassFilter]);
 
   const view = useMemo(() => {
     const normalizeClass = (cls: RosterEntry["class"]): RacerClass =>
@@ -213,7 +217,21 @@ export default function RosterEditorPage() {
       <div className="grid">
         {/* Eligible pool */}
         <div className="card">
-          <h2>Eligible Racers ({eligByGender[genderTab]?.length ?? 0})</h2>
+          <div className="row" style={{justifyContent:"space-between", alignItems:"center", gap:12}}>
+            <h2 style={{marginBottom:0}}>Eligible Racers ({eligByGender[genderTab]?.length ?? 0})</h2>
+            <label className="muted small" style={{display:"flex", alignItems:"center", gap:6}}>
+              Filter by class:
+              <select
+                value={eligibleClassFilter}
+                onChange={e => setEligibleClassFilter(e.target.value as RacerClass | "All")}
+              >
+                <option value="All">All</option>
+                {classes.map(c => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
+              </select>
+            </label>
+          </div>
           {eligByGender[genderTab]?.length ? (
             <ul className="list">
               {eligByGender[genderTab].map(r => {
