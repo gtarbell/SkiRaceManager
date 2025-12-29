@@ -1,17 +1,21 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
-import { Race, Team } from "../models";
-import { mockApi } from "../services/mockApi";
+import { Race, RaceType, Team } from "../models";
 import { api } from "../services/api";
+import Modal from "../components/Modal";
 
 export default function RacesPage() {
   const { user } = useAuth();
   const [races, setRaces] = useState<Race[] | null>(null);
   const [teams, setTeams] = useState<Team[] | null>(null);
   const [err, setErr] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
   const [startListReady, setStartListReady] = useState<Record<string, boolean>>({});
   const [raceSaving, setRaceSaving] = useState<Record<string, boolean>>({});
+  const raceTypes: RaceType[] = ["Slalom", "Giant Slalom"];
+  const [editingRace, setEditingRace] = useState<Race | null>(null);
+  const [editDraft, setEditDraft] = useState<{ name: string; location: string; date: string; type: RaceType } | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -30,32 +34,77 @@ export default function RacesPage() {
           }
         }
         setStartListReady(readiness);
+        setErr(null);
       } catch (e: any) {
         setErr(e.message ?? "Failed to load races");
       }
     })();
   }, [user]);
 
-  async function updateRace(race: Race, patch: Partial<Pick<Race, "locked" | "independent">>) {
-    if (!user) return;
-    setErr(null);
+  async function updateRace(
+    race: Race,
+    patch: Partial<Pick<Race, "locked" | "independent" | "name" | "location" | "date" | "type">>
+  ): Promise<boolean> {
+    if (!user) return false;
+    setActionError(null);
     setRaceSaving(s => ({ ...s, [race.raceId]: true }));
     try {
       const updated = await api.updateRace(user, race.raceId, patch);
       setRaces(prev => prev ? prev.map(r => r.raceId === race.raceId ? { ...r, ...updated } : r) : prev);
+      return true;
     } catch (e: any) {
-      setErr(e.message ?? "Failed to update race");
+      setActionError(e.message ?? "Failed to update race");
+      return false;
     } finally {
       setRaceSaving(s => ({ ...s, [race.raceId]: false }));
     }
   }
 
-  if (err) return <section className="card error">{err}</section>;
+  const beginEdit = (race: Race) => {
+    setActionError(null);
+    setEditingRace(race);
+    setEditDraft({
+      name: race.name,
+      location: race.location,
+      date: (race.date || "").split("T")[0],
+      type: race.type,
+    });
+  };
+
+  const closeEdit = () => {
+    setEditingRace(null);
+    setEditDraft(null);
+  };
+
+  const saveEdit = async () => {
+    if (!user || !editingRace || !editDraft) return;
+    const ok = await updateRace(editingRace, {
+      name: editDraft.name.trim(),
+      location: editDraft.location.trim(),
+      date: editDraft.date,
+      type: editDraft.type,
+    });
+    if (ok) closeEdit();
+  };
+
+  const editSaving = editingRace ? !!raceSaving[editingRace.raceId] : false;
+  const editValid = !!(
+    editDraft &&
+    editDraft.name.trim() &&
+    editDraft.location.trim() &&
+    editDraft.date &&
+    editDraft.type
+  );
+
+  if (!races && err) return <section className="card error">{err}</section>;
   if (!races) return <section className="card">Loading…</section>;
 
   return (
     <section>
       <h1>Races</h1>
+      {actionError && (
+        <div className="card error" style={{ marginBottom: 12 }}>{actionError}</div>
+      )}
       <ul className="list">
         {races.map(r => (
           <li key={r.raceId} className="list-item">
@@ -68,7 +117,15 @@ export default function RacesPage() {
                 <div className="muted small">Independent race — excluded from season standings.</div>
               )}
               <div className="row" style={{ gap: 8, alignItems: "center", marginTop: 6 }}>
-
+                {user && user.role === "ADMIN" && (
+                  <button
+                    className="secondary"
+                    onClick={() => beginEdit(r)}
+                    disabled={!!raceSaving[r.raceId]}
+                  >
+                    Edit race info
+                  </button>
+                )}
                 {user && user.role === "ADMIN" && (
                   <button
                     className="secondary"
@@ -157,6 +214,59 @@ export default function RacesPage() {
             <Link to="/public/season-results">Open</Link>
           </div>
         </div>
+      )}
+      {user && user.role === "ADMIN" && editingRace && editDraft && (
+        <Modal
+          open={true}
+          title={`Edit ${editingRace.name}`}
+          onClose={closeEdit}
+          showDefaultFooter={false}
+        >
+          {actionError && (
+            <p style={{ color: "#b00020", marginTop: 0 }}>{actionError}</p>
+          )}
+          <div className="form">
+            <label>
+              Race name
+              <input
+                value={editDraft.name}
+                onChange={e => setEditDraft({ ...editDraft, name: e.target.value })}
+              />
+            </label>
+            <label>
+              Date
+              <input
+                type="date"
+                value={editDraft.date}
+                onChange={e => setEditDraft({ ...editDraft, date: e.target.value })}
+              />
+            </label>
+            <label>
+              Location
+              <input
+                value={editDraft.location}
+                onChange={e => setEditDraft({ ...editDraft, location: e.target.value })}
+              />
+            </label>
+            <label>
+              Discipline
+              <select
+                value={editDraft.type}
+                onChange={e => setEditDraft({ ...editDraft, type: e.target.value as RaceType })}
+              >
+                {raceTypes.map(rt => (
+                  <option key={rt} value={rt}>{rt}</option>
+                ))}
+              </select>
+            </label>
+          </div>
+          <div className="row" style={{ justifyContent: "flex-end", gap: 8, marginTop: 12 }}>
+            <button className="secondary" onClick={closeEdit} disabled={editSaving}>Cancel</button>
+            <button onClick={saveEdit} disabled={!editValid || editSaving}>
+              {editSaving ? "Saving…" : "Save changes"}
+            </button>
+          </div>
+        </Modal>
       )}
     </section>
   );

@@ -80,7 +80,11 @@ export const api = {
   async setRaceLock(user: User, raceId: string, locked: boolean): Promise<Race> {
     return this.updateRace(user, raceId, { locked });
   },
-  async updateRace(user: User, raceId: string, patch: Partial<Pick<Race, "locked" | "independent">>): Promise<Race> {
+  async updateRace(
+    user: User,
+    raceId: string,
+    patch: Partial<Pick<Race, "locked" | "independent" | "name" | "location" | "date" | "type">>
+  ): Promise<Race> {
     if (user.role !== "ADMIN") throw new Error("Only admins can edit races.");
     return req(`/races/${raceId}`, { method: "PATCH", body: JSON.stringify(patch) });
   },
