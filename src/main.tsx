@@ -4,6 +4,7 @@ import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import App from "./App";
 import LoginPage from "./pages/LoginPage";
 import HomePage from "./pages/HomePage";           // ← add
+import LoggedOutPage from "./pages/LoggedOutPage";
 import TeamsPage from "./pages/TeamsPage";
 import TeamDetailPage from "./pages/TeamDetailPage";
 import RacesPage from "./pages/RacesPage";
@@ -23,6 +24,7 @@ const router = createBrowserRouter([
     element: <App />,
     children: [
       { path: "/", element: <LoginPage /> },
+      { path: "/logged-out", element: <LoggedOutPage /> },
       { path: "/home", element: <HomePage /> },     // ← new
       { path: "/teams", element: <TeamsPage /> },
       { path: "/teams/:teamId", element: <TeamDetailPage /> },

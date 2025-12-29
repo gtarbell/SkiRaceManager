@@ -51,8 +51,9 @@ export interface RosterEntry {
 
 export interface AuthState {
   user: User | null;
-  login: (username: string) => Promise<void>;
-  logout: () => void;
+  login: () => Promise<void>;
+  logout: () => Promise<void>;
+  getIdToken: () => Promise<string | null>;
 }
 
 export interface StartListEntry {

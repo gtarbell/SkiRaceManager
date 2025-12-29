@@ -1,25 +1,22 @@
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
 import logo from "../assets/CascadeLogo-w.png";
 
 export default function LoginPage() {
   const { user, login } = useAuth();
-  const [username, setUsername] = useState("");
   const [err, setErr] = useState<string | null>(null);
   const navigate = useNavigate();
 
-  if (user) {
-    // already logged in
-    navigate("/home");
-  }
+  useEffect(() => {
+    if (user) navigate("/home");
+  }, [user, navigate]);
 
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setErr(null);
     try {
-      await login(username.trim());
-      navigate("/home");
+      await login();
     } catch (e: any) {
       setErr(e.message || "Login failed");
     }
@@ -32,17 +29,9 @@ export default function LoginPage() {
         <div className="card login-card">
           <h1>Sign in</h1>
           <form onSubmit={onSubmit} className="form">
-            <label>
-              Username
-              <input
-                placeholder="Coach Sam"
-                value={username}
-                onChange={e => setUsername(e.target.value)}
-                required
-              />
-            </label>
+            <p className="muted">Sign in with your league-issued account.</p>
             {err && <div className="error">{err}</div>}
-            <button type="submit">Continue</button>
+            <button type="submit">Continue with Cognito</button>
           </form>
         </div>
         <div className="card login-help">

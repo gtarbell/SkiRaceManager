@@ -1,20 +1,28 @@
-import React, { createContext, useContext, useMemo, useState } from "react";
+import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { AuthState, User } from "../models";
-import { mockApi } from "../services/mockApi";
-import { api } from "../services/api";
+import { getCurrentAppUser, getIdToken, logoutCognito, startLoginRedirect } from "./cognitoClient";
 const Ctx = createContext<AuthState | null>(null);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
 
-  const login = async (username: string) => {
-    const u = await api.loginByName(username);
-    if (!u) throw new Error("User not found");
-    setUser(u);
-  };
-  const logout = () => setUser(null);
+  useEffect(() => {
+    getCurrentAppUser().then(setUser).catch(() => setUser(null));
+  }, []);
 
-  const value = useMemo<AuthState>(() => ({ user, login, logout }), [user]);
+  const login = async () => {
+    await startLoginRedirect();
+  };
+
+  const logout = async () => {
+    await logoutCognito();
+    setUser(null);
+  };
+
+  const value = useMemo<AuthState>(
+    () => ({ user, login, logout, getIdToken }),
+    [user]
+  );
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 };
 
