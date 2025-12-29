@@ -1,4 +1,5 @@
 import { Team, User, Racer, Gender, RacerClass, Race, RosterEntry, StartListEntry, RaceResultEntry, RaceResultGroup, TeamResult  } from "../models";
+import { getIdToken } from "../auth/cognitoClient";
 
 let users: User[] = [
   { id: "u1", name: "Geddy Admin", role: "ADMIN", teamIds: [] },
@@ -11,10 +12,15 @@ const API = import.meta.env.VITE_API_BASE_URL; // set in Amplify/Env
 
 async function req<T>(path: string, init?: RequestInit): Promise<T> {
   let apiUrl = "https://qhlag5gvl6.execute-api.us-east-2.amazonaws.com";
+  const idToken = await getIdToken();
 
   const res = await fetch(`${apiUrl}${path}`, {
     ...init,
-    headers: { "content-type": "application/json", ...(init?.headers || {}) },
+    headers: {
+      "content-type": "application/json",
+      ...(idToken ? { Authorization: `Bearer ${idToken}` } : {}),
+      ...(init?.headers || {}),
+    },
   });
   const text = await res.text();
   const body = text ? JSON.parse(text) : null;

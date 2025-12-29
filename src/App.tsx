@@ -7,7 +7,7 @@ function TopBar() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const onLogout = () => { logout(); navigate("/"); };
+  const onLogout = async () => { await logout(); navigate("/"); };
 
   const isHome = location.pathname.startsWith("/home");
   const isTeams = location.pathname.startsWith("/teams");
