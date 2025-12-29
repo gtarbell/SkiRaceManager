@@ -59,10 +59,15 @@ export async function getCurrentAppUser(): Promise<User | null> {
     const claims = idToken?.payload ?? {};
     const groups = (claims["cognito:groups"] as string[]) || [];
     const teamIds = parseTeamIds(claims["custom:teamIds"]);
+    const displayName =
+      (claims["name"] as string) ||
+      (claims["preferred_username"] as string) ||
+      user.username ||
+      (claims["email"] as string);
 
     return {
       id: user.userId,
-      name: (claims["name"] as string) || (claims["email"] as string) || user.username,
+      name: displayName,
       role: roleFromGroups(groups),
       teamIds,
     };
