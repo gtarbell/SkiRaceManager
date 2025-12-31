@@ -31,7 +31,7 @@ export default function LoginPage() {
           <form onSubmit={onSubmit} className="form">
             <p className="muted">Sign in with your league-issued account.</p>
             {err && <div className="error">{err}</div>}
-            <button type="submit">Continue with Cognito</button>
+            <button type="submit">Continue To Login</button>
           </form>
         </div>
         <div className="card login-help">
