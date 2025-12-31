@@ -144,16 +144,20 @@ export default function RacesPage() {
                   >
                     {raceSaving[r.raceId] ? "Saving…" : r.independent ? "Mark as counting race" : "Mark independent"}
                   </button>
+
+                )}
+
+                {user && user.role === "ADMIN" && (
+                  <div>
+                      <Link to={`/races/${r.raceId}/start-list`}>Create Start List</Link>  •  
+                      <Link to={`/races/${r.raceId}/results`}> Upload Results</Link>
+                    </div>
+
                 )}
               </div>
 
                 <div className="row" style={{ gap: 8, flexWrap: "wrap", alignItems: "center" }}>
-                  {user && user.role === "ADMIN" && (
-                    <div>
-                      <Link to={`/races/${r.raceId}/start-list`}>Start List (admin)</Link>
-                      <Link to={`/races/${r.raceId}/results`}>Upload Results</Link>
-                    </div>
-                   )}
+                  
                   {startListReady[r.raceId] && (
                     <>
                       <span className="row" style={{ gap: 4, alignItems: "center" }}>
