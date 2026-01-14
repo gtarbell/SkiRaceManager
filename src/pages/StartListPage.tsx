@@ -82,29 +82,55 @@ function csvEscape(s: string) {
   return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
 }
 
+function splitName(name: string) {
+  const trimmed = name.trim();
+  if (!trimmed) return { first: "", last: "" };
+  if (trimmed.includes(",")) {
+    const [last, first] = trimmed.split(",", 2);
+    return { first: (first ?? "").trim(), last: (last ?? "").trim() };
+  }
+  const parts = trimmed.split(/\s+/);
+  if (parts.length === 1) return { first: parts[0], last: "" };
+  const last = parts.pop() ?? "";
+  return { first: parts.join(" "), last };
+}
+
+function classCode(value: StartListEntry["class"]) {
+  switch (value) {
+    case "Varsity":
+      return "V";
+    case "Varsity Alternate":
+      return "VA";
+    case "Jr Varsity":
+      return "JV";
+    case "Provisional":
+      return "P";
+    default:
+      return value;
+  }
+}
+
 function toCsv(rows: StartListEntry[]) {
-  const header = ["Bib","Racer","Class","Team","Gender"];
+  const header = ["Start Order","Bib","First Name","Last Name","Class","Team","Gender"];
   const lines = [header.join(",")];
-  for (const r of rows) {
+  rows.forEach((r, index) => {
+    const name = splitName(r.racerName);
     lines.push([
+      String(index + 1),
       String(r.bib),
-      csvEscape(r.racerName),
-      csvEscape(r.class),
+      csvEscape(name.first),
+      csvEscape(name.last),
+      csvEscape(classCode(r.class)),
       csvEscape(r.teamName),
       csvEscape(r.gender),
     ].join(","));
-  }
+  });
   return lines.join("\n");
 }
 
-function downloadCsv() {
-  if (!list || list.length === 0 || !race) return;
-  const csv = toCsv(list);
+function downloadCsvFile(csv: string, file: string) {
   const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
   const url = URL.createObjectURL(blob);
-
-  const safeRace = race.name.replace(/[^a-z0-9\-]+/gi, "_").toLowerCase();
-  const file = `start-list_${safeRace}_${race.date}.csv`;
 
   const a = document.createElement("a");
   a.href = url;
@@ -113,6 +139,22 @@ function downloadCsv() {
   a.click();
   document.body.removeChild(a);
   setTimeout(() => URL.revokeObjectURL(url), 0);
+}
+
+function downloadCsv() {
+  if (!list || list.length === 0 || !race) return;
+  const safeRace = race.name.replace(/[^a-z0-9\-]+/gi, "_").toLowerCase();
+  const base = `start-list_${safeRace}_${race.date}`;
+
+  const femaleRows = list.filter(r => r.gender === "Female");
+  const maleRows = list.filter(r => r.gender === "Male");
+
+  if (femaleRows.length > 0) {
+    downloadCsvFile(toCsv(femaleRows), `${base}_female.csv`);
+  }
+  if (maleRows.length > 0) {
+    downloadCsvFile(toCsv(maleRows), `${base}_male.csv`);
+  }
 }
 
 
