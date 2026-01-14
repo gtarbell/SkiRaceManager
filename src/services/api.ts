@@ -117,6 +117,15 @@ export const api = {
 
   },
 
+  async getRosterCounts(user: User, raceIds: string[], teamIds: string[]): Promise<Record<string, Record<string, number>>> {
+    if (user.role !== "ADMIN") throw new Error("Only admins can load roster counts.");
+    const res = await req<{ counts?: Record<string, Record<string, number>> }>(`/races/roster-counts`, {
+      method: "POST",
+      body: JSON.stringify({ raceIds, teamIds }),
+    });
+    return res.counts ?? {};
+  },
+
   async addToRoster (user: any, raceId: string, teamId: string, racer: { racerId: string; gender: "Male"|"Female"; class: string }, desiredClass?: string) : Promise<RosterEntry[]>{
     return req(`/races/${raceId}/roster/${teamId}/add`, {
       method: "POST",

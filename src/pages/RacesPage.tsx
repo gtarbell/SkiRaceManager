@@ -13,6 +13,7 @@ export default function RacesPage() {
   const [actionError, setActionError] = useState<string | null>(null);
   const [startListReady, setStartListReady] = useState<Record<string, boolean>>({});
   const [raceSaving, setRaceSaving] = useState<Record<string, boolean>>({});
+  const [rosterCounts, setRosterCounts] = useState<Record<string, Record<string, number>>>({});
   const raceTypes: RaceType[] = ["Slalom", "Giant Slalom"];
   const [editingRace, setEditingRace] = useState<Race | null>(null);
   const [editDraft, setEditDraft] = useState<{ name: string; location: string; date: string; type: RaceType } | null>(null);
@@ -40,6 +41,33 @@ export default function RacesPage() {
       }
     })();
   }, [user]);
+
+  useEffect(() => {
+    if (!user || user.role !== "ADMIN" || !races || !teams || teams.length === 0) return;
+    let cancelled = false;
+    const loadCounts = async () => {
+      try {
+        const counts = await api.getRosterCounts(
+          user,
+          races.map(r => r.raceId),
+          teams.map(t => t.teamId)
+        );
+        if (!cancelled) setRosterCounts(counts);
+      } catch {
+        if (!cancelled) setRosterCounts({});
+      }
+    };
+
+    loadCounts();
+    const handleVisibility = () => {
+      if (document.visibilityState === "visible") loadCounts();
+    };
+    document.addEventListener("visibilitychange", handleVisibility);
+    return () => {
+      cancelled = true;
+      document.removeEventListener("visibilitychange", handleVisibility);
+    };
+  }, [user, races, teams]);
 
   async function updateRace(
     race: Race,
@@ -196,7 +224,10 @@ export default function RacesPage() {
                       to={`/races/${r.raceId}/roster/${t.teamId}`}
                       className="secondary"
                     >
-                      {r.locked ? `View ${t.name} Roster` : `Edit ${t.name} Roster`}
+                      {r.locked ? "View" : "Edit"} {t.name} Roster
+                      {user?.role === "ADMIN" && rosterCounts[r.raceId]?.[t.teamId] !== undefined && (
+                        ` (${rosterCounts[r.raceId][t.teamId]}/${t.racers?.length ?? 0})`
+                      )}
                     </Link>
                     {r.locked && <span className="badge warn" title="Rosters are locked for this race"></span>}
                   </div>
