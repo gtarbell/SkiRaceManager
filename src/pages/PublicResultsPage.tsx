@@ -5,6 +5,11 @@ import { api } from "../services/api";
 
 function fmtTime(sec?: number) {
   if (sec === undefined) return "—";
+  if (sec >= 60) {
+    const minutes = Math.floor(sec / 60);
+    const seconds = sec - minutes * 60;
+    return `${minutes}:${seconds.toFixed(3).padStart(6, "0")}`;
+  }
   return sec.toFixed(3);
 }
 
@@ -116,7 +121,7 @@ export default function PublicResultsPage() {
         return { ...t, place };
       });
     const fmtContribs = (list: { bib: number; racerName: string; timeSec: number }[]) =>
-      list.map(c => `${c.bib} ${c.racerName} (${c.timeSec.toFixed(3)})`).join(", ");
+      list.map(c => `${c.bib} ${c.racerName} (${fmtTime(c.timeSec)})`).join(", ");
     return (
       <div className="card" id={gender === "Female" ? "team-female" : "team-male"}>
         <div className="title">{gender} Varsity Team Scores</div>
@@ -139,11 +144,11 @@ export default function PublicResultsPage() {
               <tr key={t.teamId}>
                 <td>{t.place}</td>
                 <td>{t.teamName}</td>
-                <td>{t.run1TotalSec !== null ? t.run1TotalSec.toFixed(3) : "—"}</td>
+                <td>{t.run1TotalSec !== null ? fmtTime(t.run1TotalSec) : "—"}</td>
                 <td className="small">{t.run1Contribs.length ? fmtContribs(t.run1Contribs) : "Need 3 finishers"}</td>
-                <td>{t.run2TotalSec !== null ? t.run2TotalSec.toFixed(3) : "—"}</td>
+                <td>{t.run2TotalSec !== null ? fmtTime(t.run2TotalSec) : "—"}</td>
                 <td className="small">{t.run2Contribs.length ? fmtContribs(t.run2Contribs) : "Need 3 finishers"}</td>
-                <td>{t.totalTimeSec !== null ? t.totalTimeSec.toFixed(3) : "—"}</td>
+                <td>{t.totalTimeSec !== null ? fmtTime(t.totalTimeSec) : "—"}</td>
                 <td>{t.points}</td>
               </tr>
             ))}
