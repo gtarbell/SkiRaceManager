@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { api } from "../services/api";
 import { Race, StartListEntry } from "../models";
+import { formatRaceDate } from "../utils/date";
 
 export default function PublicStartListPage() {
   const { raceId } = useParams<{ raceId: string }>();
@@ -68,14 +69,14 @@ export default function PublicStartListPage() {
     <section>
       <div className="row" style={{ justifyContent: "space-between", alignItems: "center", gap: 12 }}>
         <div>
-          <span className="small">Female • {race.name} • {race.type} • {race.location} • {new Date(race.date).toLocaleDateString()}</span>
+          <span className="small">Female • {race.name} • {race.type} • {race.location} • {formatRaceDate(race.date)}</span>
         </div>
         <button className="secondary" onClick={() => window.print()}>Print</button>
       </div>
 
       <Section title="Female" entries={byGender.women} />
       <div className="page-break" aria-hidden />
-      <span className="muted medium">Male • {race.name} • {race.type} • {race.location} • {new Date(race.date).toLocaleDateString()}</span>
+      <span className="muted medium">Male • {race.name} • {race.type} • {race.location} • {formatRaceDate(race.date)}</span>
       <Section title="Male" entries={byGender.men} />
     </section>
   );

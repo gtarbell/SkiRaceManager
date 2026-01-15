@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
 import { Race, Team, RosterEntry } from "../models";
+import { formatRaceDate } from "../utils/date";
 import { mockApi } from "../services/mockApi";
 import { api } from "../services/api";
 
@@ -108,7 +109,7 @@ export default function HomePage() {
             <h2>Next Race</h2>
             {nextRace ? (
               <p className="muted">
-                {nextRace.name} • {nextRace.type} • {nextRace.location} • {new Date(nextRace.date).toLocaleDateString()}
+                {nextRace.name} • {nextRace.type} • {nextRace.location} • {formatRaceDate(nextRace.date)}
               </p>
             ) : (
               <p className="muted">No races configured yet.</p>
@@ -139,7 +140,7 @@ export default function HomePage() {
                             <div style={{display:"flex", alignItems:"center", gap:8}}>
                             <b>Next Race:</b>
                             <span>
-                                {nextRace.name} • {nextRace.type} • {nextRace.location} • {new Date(nextRace.date).toLocaleDateString()}
+                                {nextRace.name} • {nextRace.type} • {nextRace.location} • {formatRaceDate(nextRace.date)}
                             </span>
                             {/* badge */}
                             {(() => {
@@ -174,7 +175,7 @@ export default function HomePage() {
           </div>
           {nextRace && (
             <p className="muted" style={{marginTop:12}}>
-              Next race: {nextRace.name} • {nextRace.type} • {nextRace.location} • {new Date(nextRace.date).toLocaleDateString()}
+              Next race: {nextRace.name} • {nextRace.type} • {nextRace.location} • {formatRaceDate(nextRace.date)}
             </p>
           )}
         </div>

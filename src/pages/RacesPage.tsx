@@ -4,6 +4,7 @@ import { useAuth } from "../auth/AuthContext";
 import { Race, RaceType, Team } from "../models";
 import { api } from "../services/api";
 import Modal from "../components/Modal";
+import { formatRaceDate } from "../utils/date";
 
 export default function RacesPage() {
   const { user } = useAuth();
@@ -140,7 +141,7 @@ export default function RacesPage() {
               <div className="title">{r.name}  <span className={`badge small ${r.locked ? "warn" : "ok"}`} title={r.locked ? "Roster locked" : "Roster open"}>
                   {/* {r.locked ? "Locked" : "Open"} */}
                 </span></div>
-              <div className="muted">{r.type} • {r.location} • {new Date(r.date).toLocaleDateString()}</div>
+              <div className="muted">{r.type} • {r.location} • {formatRaceDate(r.date)}</div>
               {r.independent && (
                 <div className="muted small">Independent race — excluded from season standings.</div>
               )}

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { Race, RaceResultGroup, TeamResult } from "../models";
 import { api } from "../services/api";
+import { formatRaceDate } from "../utils/date";
 
 function fmtTime(sec?: number) {
   if (sec === undefined) return "—";
@@ -167,7 +168,7 @@ export default function PublicResultsPage() {
             <div>
               <h1>Race Results  • {race.name}</h1>
               <div className="muted" style={{ paddingBottom: "15px" }}>
-                {race.location} • {new Date(race.date).toLocaleDateString()} • {race.type}
+                {race.location} • {formatRaceDate(race.date)} • {race.type}
               </div>
             </div>
           )}

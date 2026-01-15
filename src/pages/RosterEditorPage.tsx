@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
 import { Gender, Racer, RacerClass, Race, RosterEntry, Team } from "../models";
+import { formatRaceDate } from "../utils/date";
 import { mockApi } from "../services/mockApi";
 import { api } from "../services/api";
 
@@ -160,7 +161,7 @@ export default function RosterEditorPage() {
         <h1>{race.name} — {team.name}</h1>
         <Link to="/races" className="secondary">Back to Races</Link>
       </div>
-      <p className="muted">{race.type} • {race.location} • {new Date(race.date).toLocaleDateString()}</p>
+      <p className="muted">{race.type} • {race.location} • {formatRaceDate(race.date)}</p>
       {race.locked && (
         <div className="card" style={{ marginBottom: 12 }}>
           <div className="title" style={{ marginBottom: 4 }}>Roster locked</div>
@@ -184,7 +185,7 @@ export default function RosterEditorPage() {
           </option>
           {allRaces.filter(r => r.raceId !== raceId).map(r => (
             <option key={r.raceId} value={r.raceId}>
-              {r.name} — {new Date(r.date).toLocaleDateString()}
+              {r.name} — {formatRaceDate(r.date)}
             </option>
           ))}
         </select>

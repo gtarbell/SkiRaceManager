@@ -4,6 +4,7 @@ import { useAuth } from "../auth/AuthContext";
 import { Race, StartListEntry, Team } from "../models";
 import { mockApi } from "../services/mockApi";
 import { api } from "../services/api";
+import { formatRaceDate } from "../utils/date";
 
 import Modal from "../components/Modal";
 
@@ -166,7 +167,7 @@ function downloadCsv() {
         <h1>Start List — {race.name}</h1>
         <Link to="/races" className="secondary">Back to Races</Link>
       </div>
-      <p className="muted">{race.type} • {race.location} • {new Date(race.date).toLocaleDateString()}</p>
+      <p className="muted">{race.type} • {race.location} • {formatRaceDate(race.date)}</p>
 
       <div className="card" style={{marginBottom:16}}>
         <div className="row" style={{justifyContent:"space-between", alignItems:"center"}}>

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { api } from "../services/api";
 import { Race, StartListEntry } from "../models";
+import { formatRaceDate } from "../utils/date";
 
 export default function PublicStartListByTeamPage() {
   const { raceId } = useParams<{ raceId: string }>();
@@ -49,7 +50,7 @@ export default function PublicStartListByTeamPage() {
       <div className="row" style={{ justifyContent: "space-between", alignItems: "center", gap: 12 }}>
         <div>
           
-          <span className="muted medium">{race.type} • {race.location} • {new Date(race.date).toLocaleDateString()}</span>
+          <span className="muted medium">{race.type} • {race.location} • {formatRaceDate(race.date)}</span>
         </div>
         <button className="secondary" onClick={() => window.print()}>Print</button>
       </div>
