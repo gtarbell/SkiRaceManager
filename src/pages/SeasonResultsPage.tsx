@@ -44,10 +44,13 @@ const groupOrder = [
 
 const normalizeClass = (cls: string) => (cls === "Varsity Alternate" ? "Varsity" : cls);
 const slug = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+const racerKey = (entry: RaceResultEntry) =>
+  entry.racerId || `${entry.racerName}|${entry.teamName}`;
 
 function buildPlaceMap(groups: RaceResultGroup[]) {
   const map = new Map<string, PerRaceStat>();
   for (const g of groups) {
+    const classKey = normalizeClass(String(g.class));
     const arr = (g.entries || []).slice();
     const byTotal = arr
       .slice()
@@ -78,7 +81,7 @@ function buildPlaceMap(groups: RaceResultGroup[]) {
     const placeLookup = (list: { entry: RaceResultEntry; place: number }[]) => {
       const m = new Map<string, number>();
       list.forEach(({ entry, place }) => {
-        m.set(entry.racerId || `${entry.racerName}|${entry.teamName}`, place);
+        m.set(`${racerKey(entry)}|${classKey}`, place);
       });
       return m;
     };
@@ -88,7 +91,7 @@ function buildPlaceMap(groups: RaceResultGroup[]) {
     const run2PlaceMap = placeLookup(run2Places);
 
     arr.forEach(entry => {
-      const key = entry.racerId || `${entry.racerName}|${entry.teamName}`;
+      const key = `${racerKey(entry)}|${classKey}`;
       map.set(key, {
         totalPoints: entry.totalPoints,
         totalPlace: totalPlaceMap.get(key) ?? 0,
@@ -172,7 +175,7 @@ export default function SeasonResultsPage() {
             const gender = g.gender;
             const cls = normalizeClass(String(g.class));
             for (const entry of g.entries) {
-              const key = entry.racerId || `${entry.racerName}|${entry.teamName}`;
+              const key = `${racerKey(entry)}|${cls}`;
               const placeStat = placeMap.get(key);
               if (!placeStat) continue;
               const existing = agg.get(key) || {
@@ -187,8 +190,6 @@ export default function SeasonResultsPage() {
               };
               existing.perRace[race.raceId] = placeStat;
               existing.totalPoints += placeStat.totalPoints;
-              existing.gender = gender;
-              existing.class = cls;
               agg.set(key, existing);
             }
           }
