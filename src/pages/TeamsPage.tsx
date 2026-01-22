@@ -42,7 +42,10 @@ export default function TeamsPage() {
             <li key={t.teamId} className="list-item">
               <div>
                 <div className="title">{t.name}</div>
-                <div className="muted">{t.racers.length} racer{t.racers.length === 1 ? "" : "s"}</div>
+                <div className="muted">
+                  {t.racers.length} racer{t.racers.length === 1 ? "" : "s"}
+                  {t.nonLeague ? " • Non-league" : ""}
+                </div>
               </div>
               <Link to={`/teams/${t.teamId}`} className="secondary">Manage</Link>
             </li>

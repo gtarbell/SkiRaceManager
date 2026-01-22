@@ -25,6 +25,7 @@ export interface Team {
   name: string;
   coachUserIds: string[];
   racers: Racer[];
+  nonLeague?: boolean;
 }
 
 export type RaceType = "Slalom" | "Giant Slalom";

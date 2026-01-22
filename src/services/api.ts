@@ -99,6 +99,15 @@ export const api = {
     return req(`/teams/${teamId}`);
   },
 
+  async updateTeam(
+    user: User,
+    teamId: string,
+    patch: Partial<Pick<Team, "nonLeague">>
+  ): Promise<Team> {
+    if (user.role !== "ADMIN") throw new Error("Only admins can edit teams.");
+    return req(`/teams/${teamId}`, { method: "PATCH", body: JSON.stringify(patch) });
+  },
+
   async listTeams(): Promise<Team[]> {
     return req(`/teams/`);
   },

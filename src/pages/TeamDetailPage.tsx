@@ -30,6 +30,7 @@ export default function TeamDetailPage() {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [toRemoveId, setToRemoveId] = useState<string | null>(null);
   const [toRemoveName, setToRemoveName] = useState<string | null>(null);
+  const [teamSaving, setTeamSaving] = useState(false);
 
   const [draft, setDraft] = useState<Draft>(emptyDraft(genders, classes));
   const [highlightTick, setHighlightTick] = useState(0);
@@ -125,6 +126,21 @@ export default function TeamDetailPage() {
     }
   };
 
+  const updateNonLeague = async (nextValue: boolean) => {
+    if (!team || !user) return;
+    setErr(null);
+    setTeamSaving(true);
+    try {
+      const updated = await api.updateTeam(user, team.teamId, { nonLeague: nextValue });
+      setTeam(updated);
+    } catch (e: any) {
+      setErr(e.message ?? "Failed to update team");
+    } finally {
+      setTeamSaving(false);
+    }
+  };
+
+  if (!user) return null;
   if (err) return <section className="card error">{err}</section>;
   if (!team) return <section className="card">Loading…</section>;
 
@@ -142,6 +158,17 @@ export default function TeamDetailPage() {
             ))}
           </select>
         </label>
+        {user.role === "ADMIN" && (
+          <label>
+            <input
+              type="checkbox"
+              checked={!!team.nonLeague}
+              onChange={e => updateNonLeague(e.target.checked)}
+              disabled={teamSaving}
+            />
+            Non-league team
+          </label>
+        )}
       </div>
 
       <div className="grid">
