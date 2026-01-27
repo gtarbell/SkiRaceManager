@@ -72,11 +72,22 @@ export const api = {
 
   async listRaces(): Promise<Race[]>
   {
-    return req("/races/")
+    return req("/races")
   } ,
 
   async getRace(raceId: string): Promise<Race | undefined> { return req(`/races/${raceId}`); },
   async getRacePublic(raceId: string): Promise<Race | undefined> { return req(`/races/${raceId}`); },
+  async deleteRace(user: User, raceId: string): Promise<void> {
+    if (user.role !== "ADMIN") throw new Error("Only admins can delete races.");
+    await req(`/races/${raceId}`, { method: "DELETE" });
+  },
+  async createRace(
+    user: User,
+    input: Pick<Race, "name" | "location" | "date" | "type"> & Partial<Pick<Race, "independent">>
+  ): Promise<Race> {
+    if (user.role !== "ADMIN") throw new Error("Only admins can create races.");
+    return req(`/races`, { method: "POST", body: JSON.stringify(input) });
+  },
   async setRaceLock(user: User, raceId: string, locked: boolean): Promise<Race> {
     return this.updateRace(user, raceId, { locked });
   },
@@ -221,6 +232,14 @@ export const api = {
     return req(`/races/${raceId}/start-list/excluded`, {
       method: "POST",
       body: JSON.stringify({ excludedBibs: bibs }),
+    });
+  },
+
+  async copyStartList(user: User, raceId: string, fromRaceId: string): Promise<{ entries: StartListEntry[]; meta?: any }> {
+    if (user.role !== "ADMIN") throw new Error("Only admins can copy start lists.");
+    return req(`/races/${raceId}/start-list/copy`, {
+      method: "POST",
+      body: JSON.stringify({ fromRaceId }),
     });
   },
 

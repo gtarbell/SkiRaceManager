@@ -20,6 +20,8 @@ export default function StartListPage() {
   const [showErr, setShowErr] = useState(false);
   const [isBusy, setBusy] = useState(false);
   const [excludedInput, setExcludedInput] = useState("");
+  const [allRaces, setAllRaces] = useState<Race[]>([]);
+  const [copyFromRaceId, setCopyFromRaceId] = useState<string>("");
   
 
   useEffect(() => {
@@ -30,15 +32,18 @@ export default function StartListPage() {
         const r = await api.getRace(raceId!);
         if (!r) throw new Error("Race not found");
         setRace(r);
-        const [existing, excludes, teamsResp] = await Promise.all([
+        const [existing, excludes, teamsResp, raceList] = await Promise.all([
           api.getStartList(user, raceId!),
           api.getExcludedBibs(user, raceId!),
           api.listTeams(),
+          api.listRaces(),
         ]);
         setList(existing.entries ?? existing);
         setTeamOrder(existing.meta?.teamsOrder ?? []);
         setTeams(teamsResp);
         setExcludedInput(excludes.join(", "));
+        setAllRaces(raceList);
+        setCopyFromRaceId(raceList.find(race => race.raceId !== raceId)?.raceId ?? "");
       } catch (e: any) {
         setErr(e.message ?? "Failed to load start list");
         setShowErr(true);
@@ -73,6 +78,28 @@ export default function StartListPage() {
       setTeams(await api.listTeams());
     } catch (e: any) {
       setErr(e.message ?? "Failed to generate start list");
+      setShowErr(true);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function copyFromRace() {
+    if (!user || !raceId || !copyFromRaceId) return;
+    setBusy(true);
+    try {
+      await api.copyStartList(user, raceId, copyFromRaceId);
+      const [existing, excludes, teamsResp] = await Promise.all([
+        api.getStartList(user, raceId),
+        api.getExcludedBibs(user, raceId),
+        api.listTeams(),
+      ]);
+      setList(existing.entries ?? existing);
+      setTeamOrder(existing.meta?.teamsOrder ?? []);
+      setTeams(teamsResp);
+      setExcludedInput(excludes.join(", "));
+    } catch (e: any) {
+      setErr(e.message ?? "Failed to copy start list");
       setShowErr(true);
     } finally {
       setBusy(false);
@@ -175,6 +202,30 @@ function downloadCsv() {
             Randomizes teams, snakes by start position, Women then Men. Assigns bibs: Women 1.., Men 100..
           </div>
           <button onClick={generate} disabled={isBusy}>{isBusy ? "Generating…" : "Generate / Regenerate"}</button>
+        </div>
+        <div className="row" style={{ alignItems: "center", gap: 8, marginTop: 12 }}>
+          <label className="muted small" style={{ minWidth: 130 }}>Copy start list from</label>
+          <select
+            value={copyFromRaceId}
+            onChange={e => setCopyFromRaceId(e.target.value)}
+            disabled={isBusy}
+          >
+            <option value="">Select a race…</option>
+            {allRaces
+              .filter(r => r.raceId !== raceId)
+              .map(r => (
+                <option key={r.raceId} value={r.raceId}>
+                  {r.name} • {formatRaceDate(r.date)}
+                </option>
+              ))}
+          </select>
+          <button
+            className="secondary"
+            onClick={copyFromRace}
+            disabled={isBusy || !copyFromRaceId}
+          >
+            {isBusy ? "Copying…" : "Copy"}
+          </button>
         </div>
         <div style={{marginTop:12}}>
           <label className="muted small" style={{display:"block", marginBottom:4}}>Excluded bibs for this race (comma or space separated)</label>

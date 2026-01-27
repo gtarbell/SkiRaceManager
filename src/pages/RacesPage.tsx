@@ -18,6 +18,15 @@ export default function RacesPage() {
   const raceTypes: RaceType[] = ["Slalom", "Giant Slalom"];
   const [editingRace, setEditingRace] = useState<Race | null>(null);
   const [editDraft, setEditDraft] = useState<{ name: string; location: string; date: string; type: RaceType } | null>(null);
+  const [creatingRace, setCreatingRace] = useState(false);
+  const [deletingRace, setDeletingRace] = useState<Race | null>(null);
+  const [createDraft, setCreateDraft] = useState<{ name: string; location: string; date: string; type: RaceType; independent: boolean }>({
+    name: "",
+    location: "",
+    date: "",
+    type: "Slalom",
+    independent: false,
+  });
 
   useEffect(() => {
     (async () => {
@@ -124,13 +133,91 @@ export default function RacesPage() {
     editDraft.date &&
     editDraft.type
   );
+  const createValid = !!(
+    createDraft.name.trim() &&
+    createDraft.location.trim() &&
+    createDraft.date &&
+    createDraft.type
+  );
+
+  const openCreate = () => {
+    setActionError(null);
+    setCreateDraft({ name: "", location: "", date: "", type: "Slalom", independent: false });
+    setCreatingRace(true);
+  };
+
+  const closeCreate = () => {
+    setCreatingRace(false);
+  };
+
+  const saveCreate = async () => {
+    if (!user || !createValid) return;
+    setActionError(null);
+    setRaceSaving(s => ({ ...s, create: true }));
+    try {
+      const created = await api.createRace(user, {
+        name: createDraft.name.trim(),
+        location: createDraft.location.trim(),
+        date: createDraft.date,
+        type: createDraft.type,
+        independent: createDraft.independent,
+      });
+      setRaces(prev => {
+        const next = prev ? [...prev, created] : [created];
+        return next.slice().sort((a, b) => String(a.date).localeCompare(String(b.date)));
+      });
+      setStartListReady(prev => ({ ...prev, [created.raceId]: false }));
+      closeCreate();
+    } catch (e: any) {
+      setActionError(e.message ?? "Failed to create race");
+    } finally {
+      setRaceSaving(s => ({ ...s, create: false }));
+    }
+  };
+
+  const askDelete = (race: Race) => {
+    setActionError(null);
+    setDeletingRace(race);
+  };
+
+  const closeDelete = () => setDeletingRace(null);
+
+  const confirmDelete = async () => {
+    if (!user || !deletingRace) return;
+    setActionError(null);
+    setRaceSaving(s => ({ ...s, delete: true }));
+    try {
+      await api.deleteRace(user, deletingRace.raceId);
+      setRaces(prev => prev ? prev.filter(r => r.raceId !== deletingRace.raceId) : prev);
+      setStartListReady(prev => {
+        const next = { ...prev };
+        delete next[deletingRace.raceId];
+        return next;
+      });
+      setRosterCounts(prev => {
+        const next = { ...prev };
+        delete next[deletingRace.raceId];
+        return next;
+      });
+      setDeletingRace(null);
+    } catch (e: any) {
+      setActionError(e.message ?? "Failed to delete race");
+    } finally {
+      setRaceSaving(s => ({ ...s, delete: false }));
+    }
+  };
 
   if (!races && err) return <section className="card error">{err}</section>;
   if (!races) return <section className="card">Loading…</section>;
 
   return (
     <section>
-      <h1>Races</h1>
+      <div className="row" style={{ justifyContent: "space-between", alignItems: "center" }}>
+        <h1>Races</h1>
+        {user && user.role === "ADMIN" && (
+          <button onClick={openCreate} disabled={!!raceSaving.create}>Add race</button>
+        )}
+      </div>
       {actionError && (
         <div className="card error" style={{ marginBottom: 12 }}>{actionError}</div>
       )}
@@ -174,6 +261,15 @@ export default function RacesPage() {
                     {raceSaving[r.raceId] ? "Saving…" : r.independent ? "Mark as counting race" : "Mark independent"}
                   </button>
 
+                )}
+                {user && user.role === "ADMIN" && (
+                  <button
+                    className="danger"
+                    onClick={() => askDelete(r)}
+                    disabled={!!raceSaving[r.raceId]}
+                  >
+                    Delete race
+                  </button>
                 )}
 
                 {user && user.role === "ADMIN" && (
@@ -300,6 +396,85 @@ export default function RacesPage() {
             <button className="secondary" onClick={closeEdit} disabled={editSaving}>Cancel</button>
             <button onClick={saveEdit} disabled={!editValid || editSaving}>
               {editSaving ? "Saving…" : "Save changes"}
+            </button>
+          </div>
+        </Modal>
+      )}
+      {user && user.role === "ADMIN" && creatingRace && (
+        <Modal
+          open={true}
+          title="Add race"
+          onClose={closeCreate}
+          showDefaultFooter={false}
+        >
+          {actionError && (
+            <p style={{ color: "#b00020", marginTop: 0 }}>{actionError}</p>
+          )}
+          <div className="form">
+            <label>
+              Race name
+              <input
+                value={createDraft.name}
+                onChange={e => setCreateDraft({ ...createDraft, name: e.target.value })}
+              />
+            </label>
+            <label>
+              Date
+              <input
+                type="date"
+                value={createDraft.date}
+                onChange={e => setCreateDraft({ ...createDraft, date: e.target.value })}
+              />
+            </label>
+            <label>
+              Location
+              <input
+                value={createDraft.location}
+                onChange={e => setCreateDraft({ ...createDraft, location: e.target.value })}
+              />
+            </label>
+            <label>
+              Discipline
+              <select
+                value={createDraft.type}
+                onChange={e => setCreateDraft({ ...createDraft, type: e.target.value as RaceType })}
+              >
+                {raceTypes.map(rt => (
+                  <option key={rt} value={rt}>{rt}</option>
+                ))}
+              </select>
+            </label>
+            <label>
+              <input
+                type="checkbox"
+                checked={createDraft.independent}
+                onChange={e => setCreateDraft({ ...createDraft, independent: e.target.checked })}
+              />
+              Independent race (excluded from season standings)
+            </label>
+          </div>
+          <div className="row" style={{ justifyContent: "flex-end", gap: 8, marginTop: 12 }}>
+            <button className="secondary" onClick={closeCreate} disabled={!!raceSaving.create}>Cancel</button>
+            <button onClick={saveCreate} disabled={!createValid || !!raceSaving.create}>
+              {!!raceSaving.create ? "Saving…" : "Add race"}
+            </button>
+          </div>
+        </Modal>
+      )}
+      {user && user.role === "ADMIN" && deletingRace && (
+        <Modal
+          open={true}
+          title="Delete race?"
+          onClose={closeDelete}
+          showDefaultFooter={false}
+        >
+          <p style={{ marginTop: 0 }}>
+            Delete <b>{deletingRace.name}</b>? This will remove all rosters and the start list for this race.
+          </p>
+          <div className="row" style={{ justifyContent: "flex-end", gap: 8, marginTop: 12 }}>
+            <button className="secondary" onClick={closeDelete} disabled={!!raceSaving.delete}>Cancel</button>
+            <button className="danger" onClick={confirmDelete} disabled={!!raceSaving.delete}>
+              {!!raceSaving.delete ? "Deleting…" : "Delete race"}
             </button>
           </div>
         </Modal>
