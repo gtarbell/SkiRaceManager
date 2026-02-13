@@ -256,6 +256,11 @@ export const api = {
     return req(`/races/${raceId}/results`);
   },
 
+  async recalcTeamScores(user: User, raceId: string): Promise<{ entries: RaceResultEntry[]; issues: string[]; groups?: RaceResultGroup[]; teamScores?: TeamResult[] }> {
+    if (user.role !== "ADMIN") throw new Error("Only admins can recalc team scores.");
+    return req(`/races/${raceId}/results/recalc`, { method: "POST" });
+  },
+
   async getResultsPublic(raceId: string): Promise<{ entries: RaceResultEntry[]; issues: string[]; groups?: RaceResultGroup[]; teamScores?: TeamResult[] }> {
     return req(`/races/${raceId}/results`);
   },

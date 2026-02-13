@@ -69,6 +69,23 @@ export default function ResultsPage() {
     }
   };
 
+  const recalcTeams = async () => {
+    if (!user || !raceId) return;
+    setBusy(true);
+    setErr(null);
+    try {
+      const res = await api.recalcTeamScores(user, raceId);
+      setEntries(res.entries);
+      setGroups(res.groups ?? []);
+      setTeamScores(res.teamScores ?? []);
+      setIssues(res.issues);
+    } catch (error: any) {
+      setErr(error.message || "Failed to recalculate team scores");
+    } finally {
+      setBusy(false);
+    }
+  };
+
   const renderTeamScores = (gender: "Female" | "Male") => {
     const teams = teamScores.filter(t => t.gender === gender);
     if (!teams.length) return null;
@@ -131,7 +148,12 @@ export default function ResultsPage() {
       </div>
       <div className="card" style={{ marginBottom: 16 }}>
         <p>Upload a .NatFIS file for this race. Bibs are matched to the start list; mismatched names are reported.</p>
-        <input type="file" accept=".NatFIS,.xml,text/xml" onChange={onFile} disabled={busy} />
+        <div className="row" style={{ alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+          <input type="file" accept=".NatFIS,.xml,text/xml" onChange={onFile} disabled={busy} />
+          <button className="secondary" onClick={recalcTeams} disabled={busy}>
+            {busy ? "Working…" : "Recalculate team scores"}
+          </button>
+        </div>
         {busy && <div className="muted">Processing…</div>}
         {err && <div className="error">{err}</div>}
       </div>
