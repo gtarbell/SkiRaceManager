@@ -1,5 +1,5 @@
 import { FormEvent, useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
 import logo from "../assets/CascadeLogo-w.png";
 
@@ -38,6 +38,10 @@ export default function LoginPage() {
           <p className="muted small">
             First Time or need some help? Watch this quick tutorial video to get started.
           </p>
+          <div className="row" style={{ justifyContent: "center", marginBottom: 10, flexWrap: "wrap" }}>
+            <Link to="/public/season-results" className="link-button secondary-link">Public Season Results</Link>
+            <Link to="/public/awards" className="link-button secondary-link">Public Awards</Link>
+          </div>
           <div className="video-embed">
             <iframe
               src="https://www.youtube.com/embed/2xTVbLrAyk4"

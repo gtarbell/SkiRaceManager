@@ -304,6 +304,10 @@ export default function RacesPage() {
                         <span className="row" style={{ gap: 6, alignItems: "center" }}>
                           <Link to={`/public/season-results`}>Season Results</Link>
                         </span>
+                        <span> • </span>
+                        <span className="row" style={{ gap: 6, alignItems: "center" }}>
+                          <Link to={`/public/awards`}>Awards</Link>
+                        </span>
                       </>
                       )}
                       

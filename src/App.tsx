@@ -14,6 +14,7 @@ const getPageTitle = (pathname: string) => {
   if (pathname.startsWith("/public/races/") && pathname.includes("/start-list")) return "Public Start List";
   if (pathname.startsWith("/public/races/") && pathname.includes("/results")) return "Public Results";
   if (pathname.startsWith("/public/season-results")) return "Season Results";
+  if (pathname.startsWith("/public/awards")) return "Awards";
   return "Race Manager";
 };
 

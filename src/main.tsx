@@ -14,6 +14,7 @@ import PublicStartListPage from "./pages/PublicStartListPage";
 import PublicStartListByTeamPage from "./pages/PublicStartListByTeamPage";
 import PublicResultsPage from "./pages/PublicResultsPage";
 import SeasonResultsPage from "./pages/SeasonResultsPage";
+import PublicAwardsPage from "./pages/PublicAwardsPage";
 import ResultsPage from "./pages/ResultsPage";
 
 import "./styles.css";
@@ -36,6 +37,7 @@ const router = createBrowserRouter([
       { path: "/public/races/:raceId/start-list/teams", element: <PublicStartListByTeamPage /> },
       { path: "/public/races/:raceId/results", element: <PublicResultsPage /> },
       { path: "/public/season-results", element: <SeasonResultsPage /> },
+      { path: "/public/awards", element: <PublicAwardsPage /> },
     ],
   },
 ]);
