@@ -137,7 +137,8 @@ function buildIndividualRows(
   racers: RacerSeason[],
   raceIdsByDiscipline: Record<Discipline, string[]>,
   gender: "Male" | "Female",
-  category: "sl" | "gs" | "combined"
+  category: "sl" | "gs" | "combined",
+  maxRows: number | null = MAX_LIST_SIZE
 ): RankedRow[] {
   const baseRows = racers
     .filter(r => r.gender === gender)
@@ -188,9 +189,7 @@ function buildIndividualRows(
     })
     .filter(row => row.points > 0);
 
-  return rankRows(baseRows)
-    .slice(0, MAX_LIST_SIZE)
-    .map(row => ({
+  const ranked = rankRows(baseRows).map(row => ({
       key: row.key,
       name: row.name,
       team: row.team,
@@ -201,6 +200,8 @@ function buildIndividualRows(
       tieBreakerApplied: row.tieBreakerApplied,
       rank: row.rank,
     }));
+
+  return maxRows === null ? ranked : ranked.slice(0, maxRows);
 }
 
 function buildTeamRows(teams: TeamSeason[], gender: "Male" | "Female"): TeamRankedRow[] {
@@ -334,8 +335,61 @@ export default function PublicAwardsPage() {
   const femaleGs = useMemo(() => buildIndividualRows(individuals, raceIdsByDiscipline, "Female", "gs"), [individuals, raceIdsByDiscipline]);
   const femaleCombined = useMemo(() => buildIndividualRows(individuals, raceIdsByDiscipline, "Female", "combined"), [individuals, raceIdsByDiscipline]);
 
+  const maleSlalomAll = useMemo(() => buildIndividualRows(individuals, raceIdsByDiscipline, "Male", "sl", null), [individuals, raceIdsByDiscipline]);
+  const maleGsAll = useMemo(() => buildIndividualRows(individuals, raceIdsByDiscipline, "Male", "gs", null), [individuals, raceIdsByDiscipline]);
+  const maleCombinedAll = useMemo(() => buildIndividualRows(individuals, raceIdsByDiscipline, "Male", "combined", null), [individuals, raceIdsByDiscipline]);
+
+  const femaleSlalomAll = useMemo(() => buildIndividualRows(individuals, raceIdsByDiscipline, "Female", "sl", null), [individuals, raceIdsByDiscipline]);
+  const femaleGsAll = useMemo(() => buildIndividualRows(individuals, raceIdsByDiscipline, "Female", "gs", null), [individuals, raceIdsByDiscipline]);
+  const femaleCombinedAll = useMemo(() => buildIndividualRows(individuals, raceIdsByDiscipline, "Female", "combined", null), [individuals, raceIdsByDiscipline]);
+
   const maleTeams = useMemo(() => buildTeamRows(teams, "Male"), [teams]);
   const femaleTeams = useMemo(() => buildTeamRows(teams, "Female"), [teams]);
+
+  const downloadCsv = () => {
+    const headers = ["category", "gender", "rank", "racer", "team", "points", "scores_used", "dropped_points", "tie_breaker_applied"];
+    const groups: Array<{ category: string; gender: string; rows: RankedRow[] }> = [
+      { category: "Slalom", gender: "Male", rows: maleSlalomAll },
+      { category: "Giant Slalom", gender: "Male", rows: maleGsAll },
+      { category: "Combined", gender: "Male", rows: maleCombinedAll },
+      { category: "Slalom", gender: "Female", rows: femaleSlalomAll },
+      { category: "Giant Slalom", gender: "Female", rows: femaleGsAll },
+      { category: "Combined", gender: "Female", rows: femaleCombinedAll },
+    ];
+
+    const esc = (v: string | number) => {
+      const s = String(v);
+      if (s.includes(",") || s.includes("\"") || s.includes("\n")) return `"${s.replace(/"/g, "\"\"")}"`;
+      return s;
+    };
+
+    const lines = [headers.join(",")];
+    groups.forEach(group => {
+      group.rows.forEach(row => {
+        lines.push([
+          esc(group.category),
+          esc(group.gender),
+          esc(row.rank),
+          esc(row.name),
+          esc(row.team || ""),
+          esc(row.points),
+          esc(row.racesCounted),
+          esc(row.droppedPoints),
+          esc(row.tieBreakerApplied ? "TB" : ""),
+        ].join(","));
+      });
+    });
+
+    const blob = new Blob([`${lines.join("\n")}\n`], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "season-awards-all-racers.csv";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
 
   if (loading) return <section className="card">Loading awards…</section>;
   if (err) return <section className="card error">{err}</section>;
@@ -350,7 +404,10 @@ export default function PublicAwardsPage() {
             Tie-breaker uses lowest combined time across races both tied entries have in common.
           </div>
         </div>
-        <Link to="/">Back</Link>
+        <div className="row">
+          <button className="secondary" onClick={downloadCsv}>Download CSV</button>
+          <Link to="/">Back</Link>
+        </div>
       </div>
 
       <div className="card" style={{ marginBottom: 12 }}>
