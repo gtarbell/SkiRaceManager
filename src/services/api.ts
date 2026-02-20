@@ -243,6 +243,14 @@ export const api = {
     });
   },
 
+  async updateStartListBib(user: User, raceId: string, racerId: string, bib: number): Promise<StartListEntry> {
+    if (user.role !== "ADMIN") throw new Error("Only admins can edit start list bibs.");
+    return req(`/races/${raceId}/start-list/bib`, {
+      method: "PATCH",
+      body: JSON.stringify({ racerId, bib }),
+    });
+  },
+
   async uploadResults(user: User, raceId: string, xml: string): Promise<{ entries: RaceResultEntry[]; issues: string[]; groups?: RaceResultGroup[]; teamScores?: TeamResult[] }> {
     if (user.role !== "ADMIN") throw new Error("Only admins can upload results.");
     return req(`/races/${raceId}/results`, {

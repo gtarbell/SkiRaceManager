@@ -8,6 +8,10 @@ import { formatRaceDate } from "../utils/date";
 
 import Modal from "../components/Modal";
 
+function sortByBib(entries: StartListEntry[]) {
+  return entries.slice().sort((a, b) => a.bib - b.bib);
+}
+
 export default function StartListPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -22,6 +26,8 @@ export default function StartListPage() {
   const [excludedInput, setExcludedInput] = useState("");
   const [allRaces, setAllRaces] = useState<Race[]>([]);
   const [copyFromRaceId, setCopyFromRaceId] = useState<string>("");
+  const [bibDraftByRacer, setBibDraftByRacer] = useState<Record<string, string>>({});
+  const [savingBibForRacerId, setSavingBibForRacerId] = useState<string | null>(null);
   
 
   useEffect(() => {
@@ -38,7 +44,7 @@ export default function StartListPage() {
           api.listTeams(),
           api.listRaces(),
         ]);
-        setList(existing.entries ?? existing);
+        setList(sortByBib(existing.entries ?? existing));
         setTeamOrder(existing.meta?.teamsOrder ?? []);
         setTeams(teamsResp);
         setExcludedInput(excludes.join(", "));
@@ -73,7 +79,7 @@ export default function StartListPage() {
     try {
       const excludes = parseExcluded();
       const res = await api.generateStartList(user, raceId!, excludes);
-      setList(res.entries ?? []);
+      setList(sortByBib(res.entries ?? []));
       setTeamOrder(res.meta?.teamsOrder ?? []);
       setTeams(await api.listTeams());
     } catch (e: any) {
@@ -94,7 +100,7 @@ export default function StartListPage() {
         api.getExcludedBibs(user, raceId),
         api.listTeams(),
       ]);
-      setList(existing.entries ?? existing);
+      setList(sortByBib(existing.entries ?? existing));
       setTeamOrder(existing.meta?.teamsOrder ?? []);
       setTeams(teamsResp);
       setExcludedInput(excludes.join(", "));
@@ -103,6 +109,47 @@ export default function StartListPage() {
       setShowErr(true);
     } finally {
       setBusy(false);
+    }
+  }
+
+  function isEditingBib(racerId: string) {
+    return Object.prototype.hasOwnProperty.call(bibDraftByRacer, racerId);
+  }
+
+  function startEditingBib(entry: StartListEntry) {
+    setBibDraftByRacer(prev => ({ ...prev, [entry.racerId]: String(entry.bib) }));
+  }
+
+  function cancelEditingBib(racerId: string) {
+    setBibDraftByRacer(prev => {
+      const next = { ...prev };
+      delete next[racerId];
+      return next;
+    });
+  }
+
+  async function saveBib(entry: StartListEntry) {
+    if (!raceId || !user) return;
+    const raw = (bibDraftByRacer[entry.racerId] ?? "").trim();
+    const bib = Number(raw);
+    if (!Number.isInteger(bib) || bib <= 0) {
+      setErr("Bib must be a positive integer.");
+      setShowErr(true);
+      return;
+    }
+    setSavingBibForRacerId(entry.racerId);
+    try {
+      const updated = await api.updateStartListBib(user, raceId, entry.racerId, bib);
+      setList(prev => {
+        if (!prev) return prev;
+        return sortByBib(prev.map(item => (item.racerId === updated.racerId ? { ...item, bib: updated.bib } : item)));
+      });
+      cancelEditingBib(entry.racerId);
+    } catch (e: any) {
+      setErr(e.message ?? "Failed to update bib");
+      setShowErr(true);
+    } finally {
+      setSavingBibForRacerId(null);
     }
   }
 
@@ -259,16 +306,53 @@ function downloadCsv() {
                 <th style={{width:160}}>Class</th>
                 <th>Team</th>
                 <th style={{width:90}}>Gender</th>
+                <th style={{width:220}}>Actions</th>
               </tr>
             </thead>
             <tbody>
               {list.map((e) => (
                 <tr key={`${e.bib}-${e.racerId}`}>
-                  <td>{e.bib}</td>
+                  <td>
+                    {isEditingBib(e.racerId) ? (
+                      <input
+                        type="number"
+                        min={1}
+                        style={{ width: 80 }}
+                        value={bibDraftByRacer[e.racerId]}
+                        onChange={ev => setBibDraftByRacer(prev => ({ ...prev, [e.racerId]: ev.target.value }))}
+                        disabled={savingBibForRacerId === e.racerId}
+                      />
+                    ) : (
+                      e.bib
+                    )}
+                  </td>
                   <td>{e.racerName}</td>
                   <td>{e.class}</td>
                   <td>{e.teamName}</td>
                   <td>{e.gender}</td>
+                  <td>
+                    {isEditingBib(e.racerId) ? (
+                      <div className="row" style={{ gap: 8 }}>
+                        <button
+                          onClick={() => saveBib(e)}
+                          disabled={savingBibForRacerId === e.racerId}
+                        >
+                          {savingBibForRacerId === e.racerId ? "Saving…" : "Save"}
+                        </button>
+                        <button
+                          className="secondary"
+                          onClick={() => cancelEditingBib(e.racerId)}
+                          disabled={savingBibForRacerId === e.racerId}
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    ) : (
+                      <button className="secondary" onClick={() => startEditingBib(e)}>
+                        Edit Bib
+                      </button>
+                    )}
+                  </td>
                 </tr>
               ))}
             </tbody>
