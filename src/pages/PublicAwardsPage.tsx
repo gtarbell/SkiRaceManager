@@ -47,6 +47,8 @@ type TeamRankedRow = {
   rank: number;
 };
 
+type StateQualifierRow = RankedRow & { qualifierSeed: number };
+
 const MAX_LIST_SIZE = 10;
 const EMPTY_RACE_IDS: Record<Discipline, string[]> = { Slalom: [], "Giant Slalom": [] };
 
@@ -230,6 +232,11 @@ function buildTeamRows(teams: TeamSeason[], gender: "Male" | "Female"): TeamRank
     }));
 }
 
+function buildStateQualifiers(rows: RankedRow[], excludedTeams: Set<string>, count = 3): StateQualifierRow[] {
+  const filtered = rows.filter(row => !row.team || !excludedTeams.has(row.team)).slice(0, count);
+  return filtered.map((row, idx) => ({ ...row, qualifierSeed: idx + 1 }));
+}
+
 export default function PublicAwardsPage() {
   const [individuals, setIndividuals] = useState<RacerSeason[]>([]);
   const [teams, setTeams] = useState<TeamSeason[]>([]);
@@ -345,6 +352,25 @@ export default function PublicAwardsPage() {
 
   const maleTeams = useMemo(() => buildTeamRows(teams, "Male"), [teams]);
   const femaleTeams = useMemo(() => buildTeamRows(teams, "Female"), [teams]);
+  const maleStateTeamNames = useMemo(() => new Set(maleTeams.slice(0, 3).map(t => t.teamName)), [maleTeams]);
+  const femaleStateTeamNames = useMemo(() => new Set(femaleTeams.slice(0, 3).map(t => t.teamName)), [femaleTeams]);
+
+  const maleSlalomQualifiers = useMemo(
+    () => buildStateQualifiers(maleSlalomAll, maleStateTeamNames, 3),
+    [maleSlalomAll, maleStateTeamNames]
+  );
+  const maleGsQualifiers = useMemo(
+    () => buildStateQualifiers(maleGsAll, maleStateTeamNames, 3),
+    [maleGsAll, maleStateTeamNames]
+  );
+  const femaleSlalomQualifiers = useMemo(
+    () => buildStateQualifiers(femaleSlalomAll, femaleStateTeamNames, 3),
+    [femaleSlalomAll, femaleStateTeamNames]
+  );
+  const femaleGsQualifiers = useMemo(
+    () => buildStateQualifiers(femaleGsAll, femaleStateTeamNames, 3),
+    [femaleGsAll, femaleStateTeamNames]
+  );
 
   const downloadCsv = () => {
     const headers = ["category", "gender", "rank", "racer", "team", "points", "scores_used", "dropped_points", "tie_breaker_applied"];
@@ -414,6 +440,21 @@ export default function PublicAwardsPage() {
         <div className="muted small">
           <strong>TB</strong> indicates the time-based tie-breaker was applied for that entry.
         </div>
+      </div>
+
+      <div className="card">
+        <div className="title" style={{ marginBottom: 8 }}>Individual State Qualifiers</div>
+        <div className="muted small" style={{ marginBottom: 10 }}>
+          Top 3 in each discipline/gender who are not on the gender&apos;s top 3 teams.
+        </div>
+        <div className="muted small" style={{ marginBottom: 12 }}>
+          Men excluded teams: {maleTeams.slice(0, 3).map(t => t.teamName).join(", ") || "None"}<br />
+          Women excluded teams: {femaleTeams.slice(0, 3).map(t => t.teamName).join(", ") || "None"}
+        </div>
+        <StateQualifierTable title="Men Slalom Qualifiers" rows={maleSlalomQualifiers} />
+        <StateQualifierTable title="Men Giant Slalom Qualifiers" rows={maleGsQualifiers} />
+        <StateQualifierTable title="Women Slalom Qualifiers" rows={femaleSlalomQualifiers} />
+        <StateQualifierTable title="Women Giant Slalom Qualifiers" rows={femaleGsQualifiers} />
       </div>
 
       <AwardsTable title="Men Individual Slalom" rows={maleSlalom} />
@@ -497,6 +538,44 @@ function TeamAwardsTable({ title, rows }: { title: string; rows: TeamRankedRow[]
             )) : (
               <tr>
                 <td colSpan={5} className="muted">No team standings yet.</td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+function StateQualifierTable({ title, rows }: { title: string; rows: StateQualifierRow[] }) {
+  return (
+    <div style={{ marginBottom: 12 }}>
+      <div className="title" style={{ marginBottom: 8 }}>{title}</div>
+      <div className="scroll-x">
+        <table className="table" style={{ minWidth: 700 }}>
+          <thead>
+            <tr>
+              <th style={{ width: 100 }}>Qualifier</th>
+              <th style={{ width: 120 }}>Overall Rank</th>
+              <th style={{ width: 220 }}>Racer</th>
+              <th style={{ width: 180 }}>Team</th>
+              <th style={{ width: 90 }}>Points</th>
+              <th style={{ width: 70 }}>TB</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.length ? rows.map(row => (
+              <tr key={`${title}-${row.key}`}>
+                <td>{row.qualifierSeed}</td>
+                <td>{row.rank}</td>
+                <td>{row.name}</td>
+                <td>{row.team || "—"}</td>
+                <td>{row.points}</td>
+                <td>{row.tieBreakerApplied ? "TB" : ""}</td>
+              </tr>
+            )) : (
+              <tr>
+                <td colSpan={6} className="muted">No qualifiers found.</td>
               </tr>
             )}
           </tbody>
