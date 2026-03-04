@@ -243,6 +243,14 @@ export const api = {
     });
   },
 
+  async addStartListEntry(user: User, raceId: string, racerId: string, bib: number): Promise<StartListEntry> {
+    if (user.role !== "ADMIN") throw new Error("Only admins can edit start lists.");
+    return req(`/races/${raceId}/start-list/entry`, {
+      method: "POST",
+      body: JSON.stringify({ racerId, bib }),
+    });
+  },
+
   async updateStartListBib(user: User, raceId: string, racerId: string, bib: number): Promise<StartListEntry> {
     if (user.role !== "ADMIN") throw new Error("Only admins can edit start list bibs.");
     return req(`/races/${raceId}/start-list/bib`, {

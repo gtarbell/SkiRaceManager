@@ -8,6 +8,8 @@ import { formatRaceDate } from "../utils/date";
 
 import Modal from "../components/Modal";
 
+type StartListCandidate = Omit<StartListEntry, "bib">;
+
 function sortByBib(entries: StartListEntry[]) {
   return entries.slice().sort((a, b) => a.bib - b.bib);
 }
@@ -28,7 +30,51 @@ export default function StartListPage() {
   const [copyFromRaceId, setCopyFromRaceId] = useState<string>("");
   const [bibDraftByRacer, setBibDraftByRacer] = useState<Record<string, string>>({});
   const [savingBibForRacerId, setSavingBibForRacerId] = useState<string | null>(null);
+  const [manualCandidates, setManualCandidates] = useState<StartListCandidate[]>([]);
+  const [manualRacerId, setManualRacerId] = useState("");
+  const [manualBib, setManualBib] = useState("");
+  const [isAddingManual, setIsAddingManual] = useState(false);
   
+  async function refreshManualCandidates(nextList?: StartListEntry[] | null, nextTeams?: Team[]) {
+    if (!user || !raceId) return;
+    const teamList = nextTeams ?? teams;
+    const currentList = nextList ?? list ?? [];
+    if (!teamList.length) {
+      setManualCandidates([]);
+      setManualRacerId("");
+      return;
+    }
+    const listedRacerIds = new Set(currentList.map(e => e.racerId));
+    const rosterLists = await Promise.all(teamList.map(t => api.getRoster(user, raceId, t.teamId).catch(() => [])));
+    const candidates: StartListCandidate[] = [];
+    teamList.forEach((team, idx) => {
+      const roster = rosterLists[idx] as any[];
+      roster.forEach((entry) => {
+        const cls = String(entry.class ?? "");
+        if (cls === "DNS" || cls === "DNS - Did Not Start") return;
+        if (listedRacerIds.has(String(entry.racerId))) return;
+        const racer = team.racers.find(r => r.racerId === entry.racerId);
+        if (!racer) return;
+        candidates.push({
+          raceId: raceId,
+          racerId: racer.racerId,
+          racerName: racer.name,
+          teamId: team.teamId,
+          teamName: team.name,
+          gender: entry.gender,
+          class: entry.class,
+        } as StartListCandidate);
+      });
+    });
+    candidates.sort((a, b) =>
+      a.teamName.localeCompare(b.teamName) ||
+      a.gender.localeCompare(b.gender) ||
+      a.racerName.localeCompare(b.racerName)
+    );
+    setManualCandidates(candidates);
+    setManualRacerId(prev => (prev && candidates.some(c => c.racerId === prev)) ? prev : (candidates[0]?.racerId ?? ""));
+  }
+
 
   useEffect(() => {
     (async () => {
@@ -50,6 +96,7 @@ export default function StartListPage() {
         setExcludedInput(excludes.join(", "));
         setAllRaces(raceList);
         setCopyFromRaceId(raceList.find(race => race.raceId !== raceId)?.raceId ?? "");
+        await refreshManualCandidates(sortByBib(existing.entries ?? existing), teamsResp);
       } catch (e: any) {
         setErr(e.message ?? "Failed to load start list");
         setShowErr(true);
@@ -79,9 +126,12 @@ export default function StartListPage() {
     try {
       const excludes = parseExcluded();
       const res = await api.generateStartList(user, raceId!, excludes);
-      setList(sortByBib(res.entries ?? []));
+      const nextList = sortByBib(res.entries ?? []);
+      const nextTeams = await api.listTeams();
+      setList(nextList);
       setTeamOrder(res.meta?.teamsOrder ?? []);
-      setTeams(await api.listTeams());
+      setTeams(nextTeams);
+      await refreshManualCandidates(nextList, nextTeams);
     } catch (e: any) {
       setErr(e.message ?? "Failed to generate start list");
       setShowErr(true);
@@ -100,10 +150,12 @@ export default function StartListPage() {
         api.getExcludedBibs(user, raceId),
         api.listTeams(),
       ]);
-      setList(sortByBib(existing.entries ?? existing));
+      const nextList = sortByBib(existing.entries ?? existing);
+      setList(nextList);
       setTeamOrder(existing.meta?.teamsOrder ?? []);
       setTeams(teamsResp);
       setExcludedInput(excludes.join(", "));
+      await refreshManualCandidates(nextList, teamsResp);
     } catch (e: any) {
       setErr(e.message ?? "Failed to copy start list");
       setShowErr(true);
@@ -150,6 +202,34 @@ export default function StartListPage() {
       setShowErr(true);
     } finally {
       setSavingBibForRacerId(null);
+    }
+  }
+
+  async function addManualEntry() {
+    if (!raceId || !user) return;
+    if (!manualRacerId) {
+      setErr("Select a racer to add.");
+      setShowErr(true);
+      return;
+    }
+    const bib = Number(manualBib.trim());
+    if (!Number.isInteger(bib) || bib <= 0) {
+      setErr("Bib must be a positive integer.");
+      setShowErr(true);
+      return;
+    }
+    setIsAddingManual(true);
+    try {
+      const created = await api.addStartListEntry(user, raceId, manualRacerId, bib);
+      const nextList = sortByBib([...(list ?? []), created]);
+      setList(nextList);
+      setManualBib("");
+      await refreshManualCandidates(nextList);
+    } catch (e: any) {
+      setErr(e.message ?? "Failed to add racer to start list");
+      setShowErr(true);
+    } finally {
+      setIsAddingManual(false);
     }
   }
 
@@ -285,6 +365,49 @@ function downloadCsv() {
             />
             <button className="secondary" onClick={saveExcluded} disabled={!raceId}>Save</button>
           </div>
+        </div>
+        <div style={{ marginTop: 12, paddingTop: 12, borderTop: "1px solid rgba(0,0,0,0.08)" }}>
+          <label className="muted small" style={{ display: "block", marginBottom: 4 }}>
+            Manually add rostered racer to this start list
+          </label>
+          <div className="row" style={{ alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+            <select
+              value={manualRacerId}
+              onChange={e => setManualRacerId(e.target.value)}
+              disabled={isAddingManual || manualCandidates.length === 0 || !list || list.length === 0}
+              style={{ minWidth: 320 }}
+            >
+              {manualCandidates.length === 0 ? (
+                <option value="">No eligible rostered racers available</option>
+              ) : (
+                manualCandidates.map(c => (
+                  <option key={c.racerId} value={c.racerId}>
+                    {c.racerName} • {c.teamName} • {c.gender} • {c.class}
+                  </option>
+                ))
+              )}
+            </select>
+            <input
+              type="number"
+              min={1}
+              value={manualBib}
+              onChange={e => setManualBib(e.target.value)}
+              placeholder="Bib #"
+              disabled={isAddingManual || !list || list.length === 0}
+              style={{ width: 110 }}
+            />
+            <button
+              onClick={addManualEntry}
+              disabled={isAddingManual || !manualRacerId || !list || list.length === 0}
+            >
+              {isAddingManual ? "Adding…" : "Add Racer"}
+            </button>
+          </div>
+          {(!list || list.length === 0) && (
+            <div className="muted small" style={{ marginTop: 6 }}>
+              Generate or copy a start list first.
+            </div>
+          )}
         </div>
       </div>
 
